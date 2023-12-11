@@ -4,7 +4,7 @@ class MOS6502 {
 public:
 	MOS6502() 
 		: mAccumulator(0), mRegisterX(0), mRegisterY(0), mProgramCounter(0), mStackPointer(0xFD), C(0), Z(0), I(0), D(0), B(0), V(0), N(0) {
-		for (std::size_t i = 0; i < sizeof(mMemory) / sizeof(mMemory[0]); ++i) {
+		for (std::size_t i = 0; i < sizeof(mMemory); i++) {
 			mMemory[i] = 0;
 		}
 	}
@@ -24,6 +24,13 @@ public:
 		}
 	}
 
+	void printMemory() {
+		for (std::size_t i = 0; i < sizeof(mMemory); i++) {
+			std::cout << std::hex << (int)mMemory[i] << ", ";
+		}
+		std::cout << std::endl;
+	}
+
 private:
 	uint8_t mMemory[65536];
 	uint8_t mAccumulator, mRegisterX, mRegisterY;
@@ -38,8 +45,7 @@ private:
 	}
 
 	void executeOpcode(uint8_t opcode) {
-		switch (opcode)
-		{
+		switch (opcode) {
 		case 0xE8:
 			mRegisterX++;
 			setZeroAndNegativeFlags(mRegisterX);
@@ -48,6 +54,7 @@ private:
 		case 0xEA:
 			break;
 		default:
+			printMemory();
 			std::cerr << "Unknown opcode: " << std::hex << (int)opcode << std::endl;
 			std::exit(1);
 		}
@@ -59,10 +66,8 @@ private:
 	}
 };
 
-int main()
-{
-	uint8_t program[] =
-	{
+int main() {
+	uint8_t program[] = {
 		0xEA,
 		0xEA,
 		0xEA,
@@ -72,7 +77,7 @@ int main()
 	};
 
 	MOS6502 cpu;
-	cpu.loadProgram(program, sizeof(program), 0x0000);
+	cpu.loadProgram(program, sizeof(program), 0x0005);
 	cpu.execute();
 
 	//for (const unsigned char& a : c)
