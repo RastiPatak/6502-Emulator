@@ -20,7 +20,6 @@ public:
 		while (true) {
 			uint8_t opcode = fetch();
 			executeOpcode(opcode);
-			// Implement other logic such as handling interrupts, etc.
 		}
 	}
 
@@ -79,8 +78,4 @@ int main() {
 	MOS6502 cpu;
 	cpu.loadProgram(program, sizeof(program), 0x0005);
 	cpu.execute();
-
-	//for (const unsigned char& a : c)
-	//	std::cout << (a + 0) << ",";
-	//std::cout << std::endl;
 }
