@@ -59,8 +59,20 @@ private:
 			mAccumulator = ldaImmediate();
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
+		case 0xAD:
+			mAccumulator = ldaAbsolute();
+			setZeroAndNegativeFlags(mAccumulator);
+			break;
 		case 0xB5:
 			mAccumulator = ldaZeroPageX();
+			setZeroAndNegativeFlags(mAccumulator);
+			break;
+		case 0xB9:
+			mAccumulator = ldaAbsoluteY();
+			setZeroAndNegativeFlags(mAccumulator);
+			break;
+		case 0xBD:
+			mAccumulator = ldaAbsoluteX();
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
 		case 0xE8:
@@ -110,10 +122,28 @@ private:
 		return result;
 	}
 
+	uint8_t ldaAbsolute() {
+		uint8_t result = mMemory[fetch() + (fetch() << 8)];
+		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		return result;
+	}
+
 	uint8_t ldaZeroPageX() {
 		uint8_t	address = mRegisterX + fetch();
 		uint8_t result = mMemory[address];
 		std::cout << "Loading " << std::hex << (int)result << " into A, address: " << std::hex << (int)address << std::endl;
+		return result;
+	}
+
+	uint8_t ldaAbsoluteY() {
+		uint8_t result = mMemory[(fetch() + (fetch() << 8)) + mRegisterY];
+		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		return result;
+	}
+
+	uint8_t ldaAbsoluteX() {
+		uint8_t result = mMemory[(fetch() + (fetch() << 8)) + mRegisterX];
+		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
 		return result;
 	}
 
@@ -142,7 +172,7 @@ int main() {
 	uint8_t threeProgram[] = {
 		0xE8,
 		0xE8,
-		0xB5, 0x3C
+		0xBD, 0x20, 0x0A
 	};
 
 	uint8_t memory[] = {
@@ -153,6 +183,6 @@ int main() {
 	cpu.loadProgram(program, sizeof(program), 0x0000);
 	cpu.loadProgram(twoProgram, sizeof(twoProgram), 0x0120);
 	cpu.loadProgram(threeProgram, sizeof(threeProgram), 0x0150);
-	cpu.loadProgram(memory, sizeof(memory), 0x0040);
+	cpu.loadProgram(memory, sizeof(memory), 0x0A24);
 	cpu.execute();
 }
