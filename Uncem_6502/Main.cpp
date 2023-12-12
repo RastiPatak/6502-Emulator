@@ -51,6 +51,9 @@ private:
 		case 0x6C:
 			mProgramCounter = jumpIndirect();
 			break;
+		case 0xA5:
+			mAccumulator = ldaZeroPage();
+			break;
 		case 0xA9:
 			mAccumulator = ldaImmediate();
 			break;
@@ -89,6 +92,12 @@ private:
 		return jumpAddress;
 	}
 
+	uint8_t ldaZeroPage() {
+		uint8_t result = mMemory[fetch()];
+		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		return result;
+	}
+
 	uint8_t ldaImmediate() {
 		uint8_t result = fetch();
 		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
@@ -107,7 +116,7 @@ int main() {
 		0xA9,
 		0x09,
 		0xE8,
-		0xEA,
+		0xA5, 0x40,
 		0xE8,
 		0x6C, 0x20, 0x01
 	};
@@ -121,9 +130,14 @@ int main() {
 		0xE8
 	};
 
+	uint8_t memory[] = {
+		0x45
+	};
+
 	MOS6502 cpu;
 	cpu.loadProgram(program, sizeof(program), 0x0000);
 	cpu.loadProgram(twoProgram, sizeof(twoProgram), 0x0120);
 	cpu.loadProgram(threeProgram, sizeof(threeProgram), 0x0150);
+	cpu.loadProgram(memory, sizeof(memory), 0x0040);
 	cpu.execute();
 }
