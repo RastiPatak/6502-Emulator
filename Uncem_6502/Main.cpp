@@ -57,6 +57,9 @@ private:
 		case 0xA9:
 			mAccumulator = ldaImmediate();
 			break;
+		case 0xB5:
+			mAccumulator = ldaZeroPageX();
+			break;
 		case 0xE8:
 			mRegisterX++;
 			setZeroAndNegativeFlags(mRegisterX);
@@ -104,6 +107,13 @@ private:
 		return result;
 	}
 
+	uint8_t ldaZeroPageX() {
+		uint8_t	address = mRegisterX + fetch();
+		uint8_t result = mMemory[address];
+		std::cout << "Loading " << std::hex << (int)result << " into A, address: " << std::hex << (int)address << std::endl;
+		return result;
+	}
+
 	void setZeroAndNegativeFlags(uint8_t value) {
 		Z = value == 0;
 		N = (value & 0x80) != 0;
@@ -111,6 +121,7 @@ private:
 };
 
 int main() {
+
 	uint8_t program[] = {
 		0xEA,
 		0xA9,
@@ -127,7 +138,8 @@ int main() {
 
 	uint8_t threeProgram[] = {
 		0xE8,
-		0xE8
+		0xE8,
+		0xB5, 0x3C
 	};
 
 	uint8_t memory[] = {
