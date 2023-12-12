@@ -53,12 +53,15 @@ private:
 			break;
 		case 0xA5:
 			mAccumulator = ldaZeroPage();
+			setZeroAndNegativeFlags(mAccumulator);
 			break;
 		case 0xA9:
 			mAccumulator = ldaImmediate();
+			setZeroAndNegativeFlags(mAccumulator);
 			break;
 		case 0xB5:
 			mAccumulator = ldaZeroPageX();
+			setZeroAndNegativeFlags(mAccumulator);
 			break;
 		case 0xE8:
 			mRegisterX++;
