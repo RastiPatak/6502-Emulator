@@ -51,6 +51,9 @@ private:
 		case 0x6C:
 			mProgramCounter = jumpIndirect();
 			break;
+		case 0xA9:
+			mAccumulator = ldaImmediate();
+			break;
 		case 0xE8:
 			mRegisterX++;
 			setZeroAndNegativeFlags(mRegisterX);
@@ -67,6 +70,7 @@ private:
 
 	uint16_t jumpAbsolute() {
 		std::cout << "JMP (absolute) started, PC: " << mProgramCounter << std::endl;
+
 		uint16_t jumpAddress = fetch() + (fetch() << 8);
 
 		std::cout << "New Address: " << jumpAddress << std::endl;
@@ -85,6 +89,12 @@ private:
 		return jumpAddress;
 	}
 
+	uint8_t ldaImmediate() {
+		uint8_t result = fetch();
+		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		return result;
+	}
+
 	void setZeroAndNegativeFlags(uint8_t value) {
 		Z = value == 0;
 		N = (value & 0x80) != 0;
@@ -94,8 +104,8 @@ private:
 int main() {
 	uint8_t program[] = {
 		0xEA,
-		0xEA,
-		0xEA,
+		0xA9,
+		0x09,
 		0xE8,
 		0xEA,
 		0xE8,
