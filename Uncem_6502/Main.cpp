@@ -4,6 +4,7 @@ enum OpCode {
 	BRK = 0,
 	JMPAbs = 0x4C,
 	JMPInd = 0x6C,
+	LDAIndX = 0xA1,
 	LDAZeroP = 0xA5,
 	LDAImmediate = 0xA9,
 	LDAAbs = 0xAD,
@@ -65,6 +66,10 @@ private:
 		case JMPInd:
 			mProgramCounter = jumpIndirect();
 			break;
+		case LDAIndX:
+			mAccumulator = ldaIndirectX();
+			setZeroAndNegativeFlags(mAccumulator);
+			break;
 		case LDAZeroP:
 			mAccumulator = ldaZeroPage();
 			setZeroAndNegativeFlags(mAccumulator);
@@ -92,7 +97,7 @@ private:
 		case INX:
 			mRegisterX++;
 			setZeroAndNegativeFlags(mRegisterX);
-			std::cout << "RegisterX: " << std::hex << (int)mRegisterX << ", (" << mProgramCounter << ")" << std::endl;
+			std::cout << "RegisterX: " << std::hex << (int)mRegisterX << ", (" << mProgramCounter << "-1)" << std::endl;
 			break;
 		case NOP:
 			break;
@@ -122,6 +127,18 @@ private:
 		uint16_t jumpAddress = fetch() + (fetch() << 8);
 		std::cout << "New Address: " << jumpAddress << std::endl;
 		return jumpAddress;
+	}
+
+	uint8_t ldaIndirectX() {
+		uint8_t lookupAddress = fetch() + mRegisterX;
+		std::cout << "Lookup address: " << std::hex << (int)lookupAddress << ", x being: " << std::hex << (int)mRegisterX << std::endl;
+
+		uint16_t address = mMemory[lookupAddress] + mMemory[lookupAddress + 1] << 8;
+		std::cout << "Address: " << std::hex << (int)address << " lookupA: " << std::hex << (int)lookupAddress << std::endl;
+
+		uint8_t result = mMemory[address];
+		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		return result;
 	}
 
 	uint8_t ldaZeroPage() {
@@ -176,7 +193,16 @@ int main() {
 		0xE8,
 		0xA5, 0x40,
 		0xE8,
+		0xA1, 0xF0,
 		0x6C, 0x20, 0x01
+	};
+
+	uint8_t startingF2[] = {
+		0x00, 0x05
+	};
+
+	uint8_t starting0500[] = {
+		0xBB
 	};
 
 	uint8_t twoProgram[] = {
@@ -195,6 +221,8 @@ int main() {
 
 	MOS6502 cpu;
 	cpu.loadProgram(program, sizeof(program), 0x0000);
+	cpu.loadProgram(startingF2, sizeof(startingF2), 0x00F2);
+	cpu.loadProgram(starting0500, sizeof(starting0500), 0x0500);
 	cpu.loadProgram(twoProgram, sizeof(twoProgram), 0x0120);
 	cpu.loadProgram(threeProgram, sizeof(threeProgram), 0x0150);
 	cpu.loadProgram(memory, sizeof(memory), 0x0A24);
