@@ -1,5 +1,19 @@
 #include <iostream>
 
+enum OpCode {
+	BRK = 0,
+	JMPAbs = 0x4C,
+	JMPInd = 0x6C,
+	LDAZeroP = 0xA5,
+	LDAImmediate = 0xA9,
+	LDAAbs = 0xAD,
+	LDAZeroPX = 0xB5,
+	LDAAbsY = 0xB9,
+	LDAAbsX = 0xBD,
+	INX = 0xE8,
+	NOP = 0xEA,
+};
+
 class MOS6502 {
 public:
 	MOS6502() 
@@ -19,7 +33,7 @@ public:
 	void execute() {
 		while (true) {
 			uint8_t opcode = fetch();
-			executeOpcode(opcode);
+			executeOpcode((OpCode)opcode);
 		}
 	}
 
@@ -43,44 +57,44 @@ private:
 		return data;
 	}
 
-	void executeOpcode(uint8_t opcode) {
+	void executeOpcode(OpCode opcode) {
 		switch (opcode) {
-		case 0x4C:
+		case JMPAbs:
 			mProgramCounter = jumpAbsolute();
 			break;
-		case 0x6C:
+		case JMPInd:
 			mProgramCounter = jumpIndirect();
 			break;
-		case 0xA5:
+		case LDAZeroP:
 			mAccumulator = ldaZeroPage();
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
-		case 0xA9:
+		case LDAImmediate:
 			mAccumulator = ldaImmediate();
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
-		case 0xAD:
+		case LDAAbs:
 			mAccumulator = ldaAbsolute();
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
-		case 0xB5:
+		case LDAZeroPX:
 			mAccumulator = ldaZeroPageX();
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
-		case 0xB9:
+		case LDAAbsY:
 			mAccumulator = ldaAbsoluteY();
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
-		case 0xBD:
+		case LDAAbsX:
 			mAccumulator = ldaAbsoluteX();
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
-		case 0xE8:
+		case INX:
 			mRegisterX++;
 			setZeroAndNegativeFlags(mRegisterX);
 			std::cout << "RegisterX: " << std::hex << (int)mRegisterX << ", (" << mProgramCounter << ")" << std::endl;
 			break;
-		case 0xEA:
+		case NOP:
 			break;
 		default:
 			printMemory();
