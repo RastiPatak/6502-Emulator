@@ -8,9 +8,11 @@ enum OpCode {
 	LDAZeroP = 0xA5,
 	LDAImmediate = 0xA9,
 	LDAAbs = 0xAD,
+	LDAIndY = 0xB1,
 	LDAZeroPX = 0xB5,
 	LDAAbsY = 0xB9,
 	LDAAbsX = 0xBD,
+	INY = 0xC8,
 	INX = 0xE8,
 	NOP = 0xEA,
 };
@@ -82,6 +84,10 @@ private:
 			mAccumulator = ldaAbsolute();
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
+		case LDAIndY:
+			mAccumulator = ldaIndirectY();
+			setZeroAndNegativeFlags(mAccumulator);
+			break;
 		case LDAZeroPX:
 			mAccumulator = ldaZeroPageX();
 			setZeroAndNegativeFlags(mAccumulator);
@@ -93,6 +99,10 @@ private:
 		case LDAAbsX:
 			mAccumulator = ldaAbsoluteX();
 			setZeroAndNegativeFlags(mAccumulator);
+			break;
+		case INY:
+			mRegisterY++;
+			setZeroAndNegativeFlags(mRegisterY);
 			break;
 		case INX:
 			mRegisterX++;
@@ -159,6 +169,18 @@ private:
 		return result;
 	}
 
+	uint8_t ldaIndirectY() {
+		uint8_t lookupAddress = fetch();
+		std::cout << "Lookup address: " << std::hex << (int)lookupAddress << ", y: " << std::hex << (int)mRegisterY << std::endl;
+
+		uint16_t address = (mMemory[lookupAddress] + (mMemory[lookupAddress + 1] << 8)) + mRegisterY;
+		std::cout << "Address: " << std::hex << (int)address << std::endl;
+
+		uint8_t result = mMemory[address];
+		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		return result;
+	}
+
 	uint8_t ldaZeroPageX() {
 		uint8_t	address = mRegisterX + fetch();
 		uint8_t result = mMemory[address];
@@ -188,13 +210,22 @@ int main() {
 
 	uint8_t program[] = {
 		0xEA,
-		0xA9,
-		0x09,
+		0xA9, 0x09,
 		0xE8,
 		0xA5, 0x40,
 		0xE8,
 		0xA1, 0xF0,
+		0xC8,
+		0xB1, 0xB0,
 		0x6C, 0x20, 0x01
+	};
+
+	uint8_t startingB0[] = {
+		0x41, 0x08
+	};
+
+	uint8_t starting0842[] = {
+		0xAB
 	};
 
 	uint8_t startingF2[] = {
@@ -221,6 +252,8 @@ int main() {
 
 	MOS6502 cpu;
 	cpu.loadProgram(program, sizeof(program), 0x0000);
+	cpu.loadProgram(startingB0, sizeof(startingB0), 0x00B0);
+	cpu.loadProgram(starting0842, sizeof(starting0842), 0x0842);
 	cpu.loadProgram(startingF2, sizeof(startingF2), 0x00F2);
 	cpu.loadProgram(starting0500, sizeof(starting0500), 0x0500);
 	cpu.loadProgram(twoProgram, sizeof(twoProgram), 0x0120);
