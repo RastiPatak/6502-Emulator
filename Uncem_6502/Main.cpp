@@ -14,6 +14,12 @@ enum OpCode {
 	LDAAbsX = 0xBD,
 	INY = 0xC8,
 	INX = 0xE8,
+	DEX = 0xCA, // Decrement X by 1
+	DEY = 0x88, // Decrement Y by 1
+	CLC = 0x18, //Clear carry
+	CLD = 0xD8, //Clear Decimal Mode
+	CLI = 0x58, //Clear Interrupt Disable Bit
+	CLV = 0xB8, //Clear Overflow flag
 	NOP = 0xEA,
 };
 
@@ -108,6 +114,26 @@ private:
 			mRegisterX++;
 			setZeroAndNegativeFlags(mRegisterX);
 			std::cout << "RegisterX: " << std::hex << (int)mRegisterX << ", (" << mProgramCounter << "-1)" << std::endl;
+			break;
+		case DEX:
+			mRegisterX--;
+			setZeroAndNegativeFlags(mRegisterX);
+			break;
+		case DEY:
+			mRegisterY--;
+			setZeroAndNegativeFlags(mRegisterY);
+			break;
+		case CLC:
+			C = 0;
+			break;
+		case CLD:
+			D = 0;
+			break;
+		case CLI:
+			I = 0;
+			break;
+		case CLV:
+			V = 0;
 			break;
 		case NOP:
 			break;
