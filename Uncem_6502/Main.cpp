@@ -1,5 +1,8 @@
 #include <iostream>
 
+
+#include <conio.h> 
+
 enum OpCode {
 	BRK = 0,
 	JMPAbs = 0x4C,
@@ -25,6 +28,8 @@ enum OpCode {
 
 class MOS6502 {
 public:
+	bool ISDEBUG = true; // change this manually in code to set it to either debug or usual mode (true for debug, false for usual)
+
 	MOS6502() 
 		: mAccumulator(0), mRegisterX(0), mRegisterY(0), mProgramCounter(0), mStackPointer(0xFF), C(0), Z(0), I(0), D(0), B(0), V(0), N(0) {
 		for (std::size_t i = 0; i < sizeof(mMemory); i++) {
@@ -37,6 +42,15 @@ public:
 		for (std::size_t j = 0; j < size; j++) {
 			mMemory[i++] = program[j];
 		}
+	}
+
+	void printRegisterInfo(uint8_t mAccum, uint8_t mRegX, uint8_t mRegY, uint16_t mProgCount, uint8_t mStackPointer)
+	{
+		std::cout << "ACC: " << mAccum << "X: " << mRegX << "Y: " << mRegY << "CNTR: " << mProgCount << "PNTR: " << mStackPointer << "\nOTHER INFO: ";
+	}
+	void clearConsole()
+	{
+		system("cls");
 	}
 
 	void execute() {
@@ -64,6 +78,11 @@ private:
 		uint8_t data = mMemory[mProgramCounter];
 		mProgramCounter++;
 		return data;
+	}
+
+	void printRegisterInfo()
+	{
+		std::cout << "ACC: " << (int)mAccumulator << " X: " << (int)mRegisterX << " Y: " << (int)mRegisterY << "\n FLAGS: CZIDBVN " << "\n        " << (int)C << (int)Z << (int)I << (int)D << (int)B << (int)V << (int)N  << "\n COUNTER: " << mProgramCounter << " \n POINTER: " << mStackPointer << "\nOTHER INFO: ";
 	}
 
 	void executeOpcode(OpCode opcode) {
@@ -138,9 +157,13 @@ private:
 		case NOP:
 			break;
 		default:
-			printMemory();
+			//printMemory();
 			std::cerr << "Unknown opcode: " << std::hex << (int)opcode << std::endl;
 			std::exit(1);
+		}
+		if (ISDEBUG)
+		{
+			printRegisterInfo();
 		}
 	}
 
