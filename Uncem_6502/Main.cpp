@@ -1,5 +1,8 @@
 #include <iostream>
 
+
+#include <conio.h> 
+
 enum OpCode {
 	BRK = 0,
 	JMPAbs = 0x4C,
@@ -14,11 +17,19 @@ enum OpCode {
 	LDAAbsX = 0xBD,
 	INY = 0xC8,
 	INX = 0xE8,
+	DEX = 0xCA, // Decrement X by 1
+	DEY = 0x88, // Decrement Y by 1
+	CLC = 0x18, //Clear carry
+	CLD = 0xD8, //Clear Decimal Mode
+	CLI = 0x58, //Clear Interrupt Disable Bit
+	CLV = 0xB8, //Clear Overflow flag
 	NOP = 0xEA,
 };
 
 class MOS6502 {
 public:
+	bool ISDEBUG = true; // change this manually in code to set it to either debug or usual mode (true for debug, false for usual)
+
 	MOS6502() 
 		: mAccumulator(0), mRegisterX(0), mRegisterY(0), mProgramCounter(0), mStackPointer(0xFF), C(0), Z(0), I(0), D(0), B(0), V(0), N(0) {
 		for (std::size_t i = 0; i < sizeof(mMemory); i++) {
@@ -28,6 +39,15 @@ public:
 
 	void loadProgram(const uint8_t* program, std::size_t size, uint16_t offset) {
 		memcpy(mMemory + offset, program, size);
+	}
+
+	void printRegisterInfo(uint8_t mAccum, uint8_t mRegX, uint8_t mRegY, uint16_t mProgCount, uint8_t mStackPointer)
+	{
+		std::cout << "ACC: " << mAccum << "X: " << mRegX << "Y: " << mRegY << "CNTR: " << mProgCount << "PNTR: " << mStackPointer << "\nOTHER INFO: ";
+	}
+	void clearConsole()
+	{
+		system("cls");
 	}
 
 	void execute() {
@@ -55,6 +75,11 @@ private:
 		uint8_t data = mMemory[mProgramCounter];
 		mProgramCounter++;
 		return data;
+	}
+
+	void printRegisterInfo()
+	{
+		std::cout << "ACC: " << (int)mAccumulator << " X: " << (int)mRegisterX << " Y: " << (int)mRegisterY << "\n FLAGS: CZIDBVN " << "\n        " << (int)C << (int)Z << (int)I << (int)D << (int)B << (int)V << (int)N  << "\n COUNTER: " << mProgramCounter << " \n POINTER: " << mStackPointer << "\nOTHER INFO: ";
 	}
 
 	void executeOpcode(OpCode opcode) {
@@ -106,12 +131,36 @@ private:
 			setZeroAndNegativeFlags(mRegisterX);
 			std::cout << "RegisterX: " << std::hex << static_cast<int>(mRegisterX) << ", (" << mProgramCounter << "-1)" << std::endl;
 			break;
+		case DEX:
+			mRegisterX--;
+			setZeroAndNegativeFlags(mRegisterX);
+			break;
+		case DEY:
+			mRegisterY--;
+			setZeroAndNegativeFlags(mRegisterY);
+			break;
+		case CLC:
+			C = 0;
+			break;
+		case CLD:
+			D = 0;
+			break;
+		case CLI:
+			I = 0;
+			break;
+		case CLV:
+			V = 0;
+			break;
 		case NOP:
 			break;
 		default:
 			printMemory();
 			std::cerr << "Unknown opcode: " << std::hex << static_cast<int>(opcode) << std::endl;
 			std::exit(1);
+		}
+		if (ISDEBUG)
+		{
+			printRegisterInfo();
 		}
 	}
 
