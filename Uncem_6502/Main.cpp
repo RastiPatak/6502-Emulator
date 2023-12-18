@@ -44,14 +44,10 @@ public:
 		}
 	}
 
-	void printRegisterInfo(uint8_t mAccum, uint8_t mRegX, uint8_t mRegY, uint16_t mProgCount, uint8_t mStackPointer)
-	{
-		std::cout << "ACC: " << mAccum << "X: " << mRegX << "Y: " << mRegY << "CNTR: " << mProgCount << "PNTR: " << mStackPointer << "\nOTHER INFO: ";
-	}
-	void clearConsole()
+	/*void clearConsole()
 	{
 		system("cls");
-	}
+	}*/
 
 	void execute() {
 		while (true) {
@@ -82,7 +78,7 @@ private:
 
 	void printRegisterInfo()
 	{
-		std::cout << "ACC: " << (int)mAccumulator << " X: " << (int)mRegisterX << " Y: " << (int)mRegisterY << "\n FLAGS: CZIDBVN " << "\n        " << (int)C << (int)Z << (int)I << (int)D << (int)B << (int)V << (int)N  << "\n COUNTER: " << mProgramCounter << " \n POINTER: " << mStackPointer << "\nOTHER INFO: ";
+		std::cout << std::hex << "\t" << ";" << " A:" << (int)mAccumulator << " X:" << (int)mRegisterX << " Y:" << (int)mRegisterY << " ST: CZIDBVN " << (int)C << (int)Z << (int)I << (int)D << (int)B << (int)V << (int)N  << " PC:" << mProgramCounter << " SP:" << mStackPointer << "\n";
 	}
 
 	void executeOpcode(OpCode opcode) {
@@ -135,14 +131,17 @@ private:
 			std::cout << "RegisterX: " << std::hex << (int)mRegisterX << ", (" << mProgramCounter << "-1)" << std::endl;
 			break;
 		case DEX:
+			if (ISDEBUG) { std::cout << "\t" << "DEX"; }
 			mRegisterX--;
 			setZeroAndNegativeFlags(mRegisterX);
 			break;
 		case DEY:
+			if (ISDEBUG) { std::cout << "\t" << "DEY"; }
 			mRegisterY--;
 			setZeroAndNegativeFlags(mRegisterY);
 			break;
 		case CLC:
+			if (ISDEBUG) { std::cout << "\t" << "CLC"; }
 			C = 0;
 			break;
 		case CLD:
@@ -173,6 +172,7 @@ private:
 		uint16_t jumpAddress = fetch() + (fetch() << 8);
 
 		std::cout << "New Address: " << jumpAddress << std::endl;
+		if (ISDEBUG) { std::cout << "\t" << "JMP" << "\t" << "#" << jumpAddress; }
 		return jumpAddress;
 	}
 
@@ -185,6 +185,7 @@ private:
 
 		uint16_t jumpAddress = fetch() + (fetch() << 8);
 		std::cout << "New Address: " << jumpAddress << std::endl;
+		if (ISDEBUG) { std::cout << "\t" << "JMP" << "\t" << "" << lookupAddress; }
 		return jumpAddress;
 	}
 
