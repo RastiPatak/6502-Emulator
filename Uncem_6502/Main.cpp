@@ -38,10 +38,7 @@ public:
 	}
 
 	void loadProgram(const uint8_t* program, std::size_t size, uint16_t offset) {
-		std::size_t i = offset;
-		for (std::size_t j = 0; j < size; j++) {
-			mMemory[i++] = program[j];
-		}
+		memcpy(mMemory + offset, program, size);
 	}
 
 	void printRegisterInfo(uint8_t mAccum, uint8_t mRegX, uint8_t mRegY, uint16_t mProgCount, uint8_t mStackPointer)
@@ -62,11 +59,11 @@ public:
 
 	void printMemory() {
 		for (std::size_t i = 0; i < sizeof(mMemory); i++) {
-			std::cout << std::hex << (int)mMemory[i] << ", ";
+			std::cout << std::hex << static_cast<int>(mMemory[i]) << ", ";
 		}
 		std::cout << std::endl;
 	}
-
+	
 private:
 	uint8_t mMemory[65536];
 	uint8_t mAccumulator, mRegisterX, mRegisterY;
@@ -132,7 +129,7 @@ private:
 		case INX:
 			mRegisterX++;
 			setZeroAndNegativeFlags(mRegisterX);
-			std::cout << "RegisterX: " << std::hex << (int)mRegisterX << ", (" << mProgramCounter << "-1)" << std::endl;
+			std::cout << "RegisterX: " << std::hex << static_cast<int>(mRegisterX) << ", (" << mProgramCounter << "-1)" << std::endl;
 			break;
 		case DEX:
 			mRegisterX--;
@@ -157,8 +154,8 @@ private:
 		case NOP:
 			break;
 		default:
-			//printMemory();
-			std::cerr << "Unknown opcode: " << std::hex << (int)opcode << std::endl;
+			printMemory();
+			std::cerr << "Unknown opcode: " << std::hex << static_cast<int>(opcode) << std::endl;
 			std::exit(1);
 		}
 		if (ISDEBUG)
@@ -190,62 +187,62 @@ private:
 
 	uint8_t ldaIndirectX() {
 		uint8_t lookupAddress = fetch() + mRegisterX;
-		std::cout << "Lookup address: " << std::hex << (int)lookupAddress << ", x being: " << std::hex << (int)mRegisterX << std::endl;
+		std::cout << "Lookup address: " << std::hex << static_cast<int>(lookupAddress) << ", x being: " << std::hex << static_cast<int>(mRegisterX) << std::endl;
 
 		uint16_t address = mMemory[lookupAddress] + mMemory[lookupAddress + 1] << 8;
-		std::cout << "Address: " << std::hex << (int)address << " lookupA: " << std::hex << (int)lookupAddress << std::endl;
+		std::cout << "Address: " << std::hex << static_cast<int>(address) << " lookupA: " << std::hex << static_cast<int>(lookupAddress) << std::endl;
 
 		uint8_t result = mMemory[address];
-		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
 	}
 
 	uint8_t ldaZeroPage() {
 		uint8_t result = mMemory[fetch()];
-		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
 	}
 
 	uint8_t ldaImmediate() {
 		uint8_t result = fetch();
-		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
 	}
 
 	uint8_t ldaAbsolute() {
 		uint8_t result = mMemory[fetch() + (fetch() << 8)];
-		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
 	}
 
 	uint8_t ldaIndirectY() {
 		uint8_t lookupAddress = fetch();
-		std::cout << "Lookup address: " << std::hex << (int)lookupAddress << ", y: " << std::hex << (int)mRegisterY << std::endl;
+		std::cout << "Lookup address: " << std::hex << static_cast<int>(lookupAddress) << ", y: " << std::hex << static_cast<int>(mRegisterY) << std::endl;
 
 		uint16_t address = (mMemory[lookupAddress] + (mMemory[lookupAddress + 1] << 8)) + mRegisterY;
-		std::cout << "Address: " << std::hex << (int)address << std::endl;
+		std::cout << "Address: " << std::hex << static_cast<int>(address) << std::endl;
 
 		uint8_t result = mMemory[address];
-		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
 	}
 
 	uint8_t ldaZeroPageX() {
 		uint8_t	address = mRegisterX + fetch();
 		uint8_t result = mMemory[address];
-		std::cout << "Loading " << std::hex << (int)result << " into A, address: " << std::hex << (int)address << std::endl;
+		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A, address: " << std::hex << static_cast<int>(address) << std::endl;
 		return result;
 	}
 
 	uint8_t ldaAbsoluteY() {
 		uint8_t result = mMemory[(fetch() + (fetch() << 8)) + mRegisterY];
-		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
 	}
 
 	uint8_t ldaAbsoluteX() {
 		uint8_t result = mMemory[(fetch() + (fetch() << 8)) + mRegisterX];
-		std::cout << "Loading " << std::hex << (int)result << " into A" << std::endl;
+		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
 	}
 
@@ -299,14 +296,14 @@ int main() {
 		0x45
 	};
 
-	MOS6502 cpu;
-	cpu.loadProgram(program, sizeof(program), 0x0000);
-	cpu.loadProgram(startingB0, sizeof(startingB0), 0x00B0);
-	cpu.loadProgram(starting0842, sizeof(starting0842), 0x0842);
-	cpu.loadProgram(startingF2, sizeof(startingF2), 0x00F2);
-	cpu.loadProgram(starting0500, sizeof(starting0500), 0x0500);
-	cpu.loadProgram(twoProgram, sizeof(twoProgram), 0x0120);
-	cpu.loadProgram(threeProgram, sizeof(threeProgram), 0x0150);
-	cpu.loadProgram(memory, sizeof(memory), 0x0A24);
-	cpu.execute();
+	auto cpu = std::make_shared<MOS6502>();
+	cpu->loadProgram(program, sizeof(program), 0x0000);
+	cpu->loadProgram(startingB0, sizeof(startingB0), 0x00B0);
+	cpu->loadProgram(starting0842, sizeof(starting0842), 0x0842);
+	cpu->loadProgram(startingF2, sizeof(startingF2), 0x00F2);
+	cpu->loadProgram(starting0500, sizeof(starting0500), 0x0500);
+	cpu->loadProgram(twoProgram, sizeof(twoProgram), 0x0120);
+	cpu->loadProgram(threeProgram, sizeof(threeProgram), 0x0150);
+	cpu->loadProgram(memory, sizeof(memory), 0x0A24);
+	cpu->execute();
 }
