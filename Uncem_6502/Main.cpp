@@ -29,7 +29,22 @@ enum OpCode {
 	TSX = 0xBA, //Transfer Stack Pointer to X
 	TXA = 0x8A, //Transfer X to Accumulator
 	TXS = 0x9A, //Transfer X to Stack Pointer
-	TYA = 0x98 // Transfer Y to Accumulator
+	TYA = 0x98, // Transfer Y to Accumulator
+
+	BCC = 0x90, //Branch on Carry Clear
+	BCS = 0xB0, //Branch on Carry Set
+	BEQ = 0xF0, //Branch on Result Zero
+	BMI = 0x30,  //Branch on result minus
+	BNE = 0x30,  //Branch on result non zero
+	BPL = 0x30,  //Branch on result plus NONE OF BRANCHES IMPLEMENTED YET
+
+	CPXImmedeate = 0xE0, //Compare X With Memory
+	CPXZeroP = 0xE4,
+	CPXAbs = 0xEC,
+
+	CPYImmedeate = 0xC0, //Compare Y With Memory
+	CPYZeroP = 0xC4,
+	CPYAbs = 0xCC
 };
 
 class MOS6502 {
@@ -168,6 +183,35 @@ private:
 		case TSX:
 			TransferStackToX();
 			break;
+		case TYA:
+			TransferYToAcc();
+			break;
+		case TXA:
+			TransferXToAcc();
+			break;
+		case TXS:
+			TransferXToStack();
+			break;
+		case BNE: // on non zero
+
+		case CPXImmedeate:
+			CompareXWithMemoryImmedeate();
+			break;
+		case CPXAbs:
+			CompareXWithMemoryAbsolute();
+			break;
+		case CPXZeroP:
+			CompareXWithMemoryZeroPage();
+			break;
+		case CPYImmedeate:
+			CompareYWithMemoryImmedeate();
+			break;
+		case CPYAbs:
+			CompareYWithMemoryAbsolute();
+			break;
+		case CPYZeroP:
+			CompareYWithMemoryZeroPage();
+			break;
 		case NOP:
 			break;
 		default:
@@ -185,19 +229,240 @@ private:
 	{
 		std::cout << "Transferring Accumulator to X" << mProgramCounter << std::endl;
 		mRegisterX = mAccumulator;
+		setZeroAndNegativeFlags(mRegisterX);
 	}
 
 	void TransferAccToY()
 	{
 		std::cout << "Transferring Accumulator to Y" << mProgramCounter << std::endl;
 		mRegisterY = mAccumulator;
+		setZeroAndNegativeFlags(mRegisterY);
 	}
 
 	void TransferStackToX()
 	{
 		std::cout << "Transferring Accumulator to X" << mProgramCounter << std::endl;
 		mRegisterX = mStackPointer;
+		setZeroAndNegativeFlags(mRegisterX);
 	}
+
+	void TransferXToAcc()
+	{
+		std::cout << "Transferring X to Accumulator" << mProgramCounter << std::endl;
+		mAccumulator = mRegisterX;
+		setZeroAndNegativeFlags(mAccumulator);
+	}
+
+	void TransferYToAcc()
+	{
+		std::cout << "Transferring Y to Accumulator" << mProgramCounter << std::endl;
+		mAccumulator = mRegisterY;
+		setZeroAndNegativeFlags(mAccumulator);
+	}
+
+	void TransferXToStack()
+	{
+		std::cout << "Transferring Accumulator to X" << mProgramCounter << std::endl;
+		mStackPointer = mRegisterX;
+		setZeroAndNegativeFlags(mStackPointer);
+	}
+
+	//  2  1  0
+	// 12 34 56<
+	// 78 88 F9<
+	// 8A BD 4F
+	//     0  C
+
+	uint8_t add(uint8_t val_a, uint8_t val_b, uint8_t& C, uint8_t& Z, uint8_t& N, uint8_t& V)
+	{
+		uint16_t res = val_a;
+
+		res += val_b;
+		
+		if (C) { res += 1; }
+
+		// unsigned 0..255
+		// signed -128..0..+127
+
+		if (res > 255)
+		{
+			C = 1;
+		}
+		else
+		{ 
+			C = 0; 
+		}
+
+		if (res == 0)
+		{
+			Z = 1;
+		}
+		else
+		{
+			Z = 0;
+		}
+
+		if (res > 127)
+		{
+			N = 1;
+		}
+		else
+		{
+			N = 0;
+		}
+
+		V = 0;
+		if (val_a <= 127 && val_b <= 127)
+		{
+			if (res > 127)
+			{
+				V = 1;
+			}
+		}
+		else if (val_a >= 128 && val_b >= 128)
+		{
+			if (res < 128)
+			{
+				V = 1;
+			}
+		}
+
+		return res;
+	}
+
+	uint8_t sub(uint8_t val_a, uint8_t val_b, uint8_t& C, uint8_t& Z, uint8_t& N, uint8_t& V)
+	{
+		uint16_t res = val_a;
+		res -= val_b;
+
+		if (!C) { res -= 1; }
+
+		// unsigned 0..255
+		// signed -128..0..+127
+
+		if (res > 255) // if the result if more than 255 that means the number looks like this, at least 0000 0001 0000 0000, which raises the carry flag in this case 
+		{
+			C = 0;
+		}
+		else
+		{
+			C = 1;
+		}
+
+		if (res == 0)
+		{
+			Z = 1;
+		}
+		else
+		{
+			Z = 0;
+		}
+
+		if (res > 127)
+		{
+			N = 1;
+		}
+		else
+		{
+			N = 0;
+		}
+
+		V = 0;
+
+		int8_t val_as = val_a; //signing numbers
+		int8_t val_bs = val_b;
+		/*int8_t ress = res;*/
+
+		//raising overflow flag. It happens if anomalous answer is produced
+		if (val_a < 127 && val_b < 127) // if both numbers are greater than 0, but result of subtraction is less than 0 (can happen)
+		{
+			if (val_a > val_b)
+			{
+				if (res > 127)
+				{
+					V = 1;
+				}
+			}
+		}
+		else if (val_a > 127 && val_b > 127) // if both numbers are less than 0, but result of subtraction is greater than 0 (can happen)
+		{
+			if (val_a < val_b)
+			{
+				if (res < 127)
+				{
+					V = 1;
+				}
+			}
+		}
+
+		return res;
+	}
+
+	void compareTwoNumbers(uint8_t val_a, uint8_t val_b, uint8_t& C, uint8_t& Z, uint8_t& N)
+	{
+		C = 1; 
+		uint8_t dummyV; // Overflow flag is not being raised during operations it normally is raised in. Thats why i let it be, but i dont use it during CMP operations, replacing it with a dummy.
+		sub(val_a, val_b, C, Z, N, dummyV);
+	}
+
+	void CompareXWithMemoryImmedeate()
+	{
+		uint8_t valueToCompareTo = fetch();
+		compareTwoNumbers(mRegisterX, valueToCompareTo, C, Z, N);
+	}
+
+	void CompareXWithMemoryAbsolute()
+	{
+		uint16_t lookupAddress = fetch() + (fetch() << 8);
+		uint8_t valueToCompareTo = mMemory[lookupAddress];
+		compareTwoNumbers(mRegisterX, valueToCompareTo, C, Z, N);
+	}
+
+	void CompareXWithMemoryZeroPage()
+	{
+		uint16_t lookupAddress = fetch();
+		uint8_t valueToCompareTo = mMemory[lookupAddress];
+		compareTwoNumbers(mRegisterX, valueToCompareTo, C, Z, N);
+	}
+
+
+	void CompareYWithMemoryImmedeate()
+	{
+		uint8_t valueToCompareTo = fetch();
+		uint8_t comparisonResult = mRegisterY - valueToCompareTo;
+		compareTwoNumbers(mRegisterY, valueToCompareTo, C, Z, N);
+	}
+
+	void CompareYWithMemoryAbsolute()
+	{
+		uint16_t lookupAddress = fetch() + (fetch() << 8);
+		uint8_t valueToCompareTo = mMemory[lookupAddress];
+		compareTwoNumbers(mRegisterY, valueToCompareTo, C, Z, N);
+	}
+
+	void CompareYWithMemoryZeroPage()
+	{
+		uint16_t lookupAddress = fetch();
+		uint8_t valueToCompareTo = mMemory[lookupAddress];
+		compareTwoNumbers(mRegisterY, valueToCompareTo, C, Z, N);
+	}
+
+	/*uint16_t BranchNonZero() {
+		std::cout << "BNE started, PC: " << mProgramCounter << std::endl;
+		uint16_t branchOffset = fetch() << 8;
+		if (Z == 0)
+		{
+
+			std::cout << "New Address: " << branchOffset << std::endl;
+			
+			return branchOffset;
+		}
+		else
+		{
+			return mProgramCounter;
+		}
+		if (ISDEBUG) { std::cout << "\t" << "BNE" << "\t" << "#" << branchOffset; }
+	}*/
 
 	uint16_t jumpAbsolute() {
 		std::cout << "JMP (absolute) started, PC: " << mProgramCounter << std::endl;
@@ -208,6 +473,8 @@ private:
 		if (ISDEBUG) { std::cout << "\t" << "JMP" << "\t" << "#" << jumpAddress; }
 		return jumpAddress;
 	}
+
+
 
 	uint16_t jumpIndirect() {
 		std::cout << "JMP (indirect) started, PC: " << mProgramCounter << std::endl;
@@ -329,6 +596,10 @@ int main() {
 		0xBD, 0x20, 0x0A
 	};
 
+	/*uint8_t programWithBranch[] = {
+		//LDX 10, LDY 5, 
+	};*/
+
 	uint8_t memory[] = {
 		0x45
 	};
@@ -341,6 +612,7 @@ int main() {
 	cpu.loadProgram(starting0500, sizeof(starting0500), 0x0500);
 	cpu.loadProgram(twoProgram, sizeof(twoProgram), 0x0120);
 	cpu.loadProgram(threeProgram, sizeof(threeProgram), 0x0150);
+	cpu.loadProgram(programWithBranch, sizeof(programWithBranch), 0x0210);
 	cpu.loadProgram(memory, sizeof(memory), 0x0A24);
 	cpu.execute();
 }
