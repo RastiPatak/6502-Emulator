@@ -23,7 +23,13 @@ enum OpCode {
 	CLD = 0xD8, //Clear Decimal Mode
 	CLI = 0x58, //Clear Interrupt Disable Bit
 	CLV = 0xB8, //Clear Overflow flag
-	NOP = 0xEA,
+	NOP = 0xEA, 
+	TAX = 0xAA, //Transfer Accumulator to X
+	TAY = 0xA8, //Transfer Accumulator to Y
+	TSX = 0xBA, //Transfer Stack Pointer to X
+	TXA = 0x8A, //Transfer X to Accumulator
+	TXS = 0x9A, //Transfer X to Stack Pointer
+	TYA = 0x98 // Transfer Y to Accumulator
 };
 
 class MOS6502 {
@@ -153,6 +159,15 @@ private:
 		case CLV:
 			V = 0;
 			break;
+		case TAX:
+			TransferAccToX();
+			break;
+		case TAY:
+			TransferAccToY();
+			break;
+		case TSX:
+			TransferStackToX();
+			break;
 		case NOP:
 			break;
 		default:
@@ -164,6 +179,24 @@ private:
 		{
 			printRegisterInfo();
 		}
+	}
+
+	void TransferAccToX()
+	{
+		std::cout << "Transferring Accumulator to X" << mProgramCounter << std::endl;
+		mRegisterX = mAccumulator;
+	}
+
+	void TransferAccToY()
+	{
+		std::cout << "Transferring Accumulator to Y" << mProgramCounter << std::endl;
+		mRegisterY = mAccumulator;
+	}
+
+	void TransferStackToX()
+	{
+		std::cout << "Transferring Accumulator to X" << mProgramCounter << std::endl;
+		mRegisterX = mStackPointer;
 	}
 
 	uint16_t jumpAbsolute() {
