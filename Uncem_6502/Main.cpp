@@ -35,8 +35,8 @@ enum OpCode {
 	BCS = 0xB0, //Branch on Carry Set
 	BEQ = 0xF0, //Branch on Result Zero
 	BMI = 0x30,  //Branch on result minus
-	BNE = 0x30,  //Branch on result non zero
-	BPL = 0x30,  //Branch on result plus NONE OF BRANCHES IMPLEMENTED YET
+	BNE = 0xD0,  //Branch on result non zero
+	BPL = 0x10,  //Branch on result plus NONE OF BRANCHES IMPLEMENTED YET
 
 	CPXImmedeate = 0xE0, //Compare X With Memory
 	CPXZeroP = 0xE4,
@@ -192,8 +192,24 @@ private:
 		case TXS:
 			TransferXToStack();
 			break;
-		case BNE: // on non zero
-
+		case BNE:
+			mProgramCounter += BranchNonZero();
+			break;
+		case BCS:
+			mProgramCounter += BranchCarrySet();
+			break;
+		case BCC:
+			mProgramCounter += BranchCarryClear();
+			break;
+		case BEQ:
+			mProgramCounter += BranchZero();
+			break;
+		case BMI:
+			mProgramCounter += BranchMinus();
+			break;
+		case BPL:
+			mProgramCounter += BranchPlus();
+			break;
 		case CPXImmedeate:
 			CompareXWithMemoryImmedeate();
 			break;
@@ -266,12 +282,6 @@ private:
 		mStackPointer = mRegisterX;
 		setZeroAndNegativeFlags(mStackPointer);
 	}
-
-	//  2  1  0
-	// 12 34 56<
-	// 78 88 F9<
-	// 8A BD 4F
-	//     0  C
 
 	uint8_t add(uint8_t val_a, uint8_t val_b, uint8_t& C, uint8_t& Z, uint8_t& N, uint8_t& V)
 	{
@@ -447,13 +457,13 @@ private:
 		compareTwoNumbers(mRegisterY, valueToCompareTo, C, Z, N);
 	}
 
-	/*uint16_t BranchNonZero() {
+	int16_t BranchNonZero() {
 		std::cout << "BNE started, PC: " << mProgramCounter << std::endl;
-		uint16_t branchOffset = fetch() << 8;
+		int16_t branchOffset = fetch() << 8; //Branch offset can be negative, due to how relative addressing works.
 		if (Z == 0)
 		{
 
-			std::cout << "New Address: " << branchOffset << std::endl;
+			std::cout << "Offset: " << branchOffset << std::endl;
 			
 			return branchOffset;
 		}
@@ -462,7 +472,92 @@ private:
 			return mProgramCounter;
 		}
 		if (ISDEBUG) { std::cout << "\t" << "BNE" << "\t" << "#" << branchOffset; }
-	}*/
+	}
+
+	int16_t BranchCarrySet() {
+		std::cout << "BCS started, PC: " << mProgramCounter << std::endl;
+		int16_t branchOffset = fetch() << 8; //Branch offset can be negative, due to how relative addressing works.
+		if (C == 1)
+		{
+
+			std::cout << "Offset: " << branchOffset << std::endl;
+
+			return branchOffset;
+		}
+		else
+		{
+			return mProgramCounter;
+		}
+		if (ISDEBUG) { std::cout << "\t" << "BCS" << "\t" << "#" << branchOffset; }
+	}
+
+	int16_t BranchCarryClear() {
+		std::cout << "BCC started, PC: " << mProgramCounter << std::endl;
+		int16_t branchOffset = fetch() << 8; //Branch offset can be negative, due to how relative addressing works.
+		if (C == 0)
+		{
+
+			std::cout << "Offset: " << branchOffset << std::endl;
+
+			return branchOffset;
+		}
+		else
+		{
+			return mProgramCounter;
+		}
+		if (ISDEBUG) { std::cout << "\t" << "BCC" << "\t" << "#" << branchOffset; }
+	}
+
+	int16_t BranchZero() {
+		std::cout << "BEQ started, PC: " << mProgramCounter << std::endl;
+		int16_t branchOffset = fetch() << 8; //Branch offset can be negative, due to how relative addressing works.
+		if (Z == 1)
+		{
+
+			std::cout << "Offset: " << branchOffset << std::endl;
+
+			return branchOffset;
+		}
+		else
+		{
+			return mProgramCounter;
+		}
+		if (ISDEBUG) { std::cout << "\t" << "BEQ" << "\t" << "#" << branchOffset; }
+	}
+
+	int16_t BranchMinus() {
+		std::cout << "BMI started, PC: " << mProgramCounter << std::endl;
+		int16_t branchOffset = fetch() << 8; //Branch offset can be negative, due to how relative addressing works.
+		if (N == 1)
+		{
+
+			std::cout << "Offset: " << branchOffset << std::endl;
+
+			return branchOffset;
+		}
+		else
+		{
+			return mProgramCounter;
+		}
+		if (ISDEBUG) { std::cout << "\t" << "BMI" << "\t" << "#" << branchOffset; }
+	}
+
+	int16_t BranchPlus() {
+		std::cout << "BPL started, PC: " << mProgramCounter << std::endl;
+		int16_t branchOffset = fetch() << 8; //Branch offset can be negative, due to how relative addressing works.
+		if (N == 0)
+		{
+
+			std::cout << "Offset: " << branchOffset << std::endl;
+
+			return branchOffset;
+		}
+		else
+		{
+			return mProgramCounter;
+		}
+		if (ISDEBUG) { std::cout << "\t" << "BPL" << "\t" << "#" << branchOffset; }
+	}
 
 	uint16_t jumpAbsolute() {
 		std::cout << "JMP (absolute) started, PC: " << mProgramCounter << std::endl;
