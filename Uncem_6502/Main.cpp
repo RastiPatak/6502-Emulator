@@ -23,7 +23,7 @@ enum OpCode {
 	CLD = 0xD8, //Clear Decimal Mode
 	CLI = 0x58, //Clear Interrupt Disable Bit
 	CLV = 0xB8, //Clear Overflow flag
-	NOP = 0xEA, 
+	NOP = 0xEA,
 	TAX = 0xAA, //Transfer Accumulator to X
 	TAY = 0xA8, //Transfer Accumulator to Y
 	TSX = 0xBA, //Transfer Stack Pointer to X
@@ -51,7 +51,7 @@ class MOS6502 {
 public:
 	bool ISDEBUG = true; // change this manually in code to set it to either debug or usual mode (true for debug, false for usual)
 
-	MOS6502() 
+	MOS6502()
 		: mAccumulator(0), mRegisterX(0), mRegisterY(0), mProgramCounter(0), mStackPointer(0xFF), C(0), Z(0), I(0), D(0), B(0), V(0), N(0) {
 		for (std::size_t i = 0; i < sizeof(mMemory); i++) {
 			mMemory[i] = 0;
@@ -99,7 +99,7 @@ private:
 
 	void printRegisterInfo()
 	{
-		std::cout << std::hex << "\t" << ";" << " A:" << (int)mAccumulator << " X:" << (int)mRegisterX << " Y:" << (int)mRegisterY << " ST: CZIDBVN " << (int)C << (int)Z << (int)I << (int)D << (int)B << (int)V << (int)N  << " PC:" << mProgramCounter << " SP:" << mStackPointer << "\n";
+		std::cout << std::hex << "\t" << ";" << " A:" << (int)mAccumulator << " X:" << (int)mRegisterX << " Y:" << (int)mRegisterY << " ST: CZIDBVN " << (int)C << (int)Z << (int)I << (int)D << (int)B << (int)V << (int)N << " PC:" << mProgramCounter << " SP:" << mStackPointer << "\n";
 	}
 
 	void executeOpcode(OpCode opcode) {
@@ -193,7 +193,7 @@ private:
 			TransferXToStack();
 			break;
 		case BNE:
-			mProgramCounter += BranchNonZero();
+			BranchNonZero();
 			break;
 		case BCS:
 			mProgramCounter += BranchCarrySet();
@@ -288,7 +288,7 @@ private:
 		uint16_t res = val_a;
 
 		res += val_b;
-		
+
 		if (C) { res += 1; }
 
 		// unsigned 0..255
@@ -299,8 +299,8 @@ private:
 			C = 1;
 		}
 		else
-		{ 
-			C = 0; 
+		{
+			C = 0;
 		}
 
 		if (res == 0)
@@ -410,7 +410,7 @@ private:
 
 	void compareTwoNumbers(uint8_t val_a, uint8_t val_b, uint8_t& C, uint8_t& Z, uint8_t& N)
 	{
-		C = 1; 
+		C = 1;
 		uint8_t dummyV; // Overflow flag is not being raised during operations it normally is raised in. Thats why i let it be, but i dont use it during CMP operations, replacing it with a dummy.
 		sub(val_a, val_b, C, Z, N, dummyV);
 	}
@@ -457,21 +457,14 @@ private:
 		compareTwoNumbers(mRegisterY, valueToCompareTo, C, Z, N);
 	}
 
-	int16_t BranchNonZero() {
+	void BranchNonZero() {
 		std::cout << "BNE started, PC: " << mProgramCounter << std::endl;
-		int16_t branchOffset = fetch() << 8; //Branch offset can be negative, due to how relative addressing works.
-		if (Z == 0)
-		{
-
-			std::cout << "Offset: " << branchOffset << std::endl;
-			
-			return branchOffset;
+		int8_t fetchedByte = fetch();
+		if (Z == 0) {
+			mProgramCounter += fetchedByte;
+			std::cout << "Offset: " << static_cast<int>(fetchedByte) << std::endl;
 		}
-		else
-		{
-			return mProgramCounter;
-		}
-		if (ISDEBUG) { std::cout << "\t" << "BNE" << "\t" << "#" << branchOffset; }
+		if (ISDEBUG) { std::cout << "\t" << "BNE" << "\t" << "#" << fetchedByte; }
 	}
 
 	int16_t BranchCarrySet() {
@@ -573,7 +566,7 @@ private:
 
 	uint16_t jumpIndirect() {
 		std::cout << "JMP (indirect) started, PC: " << mProgramCounter << std::endl;
-		
+
 		uint16_t lookupAddress = fetch() + (fetch() << 8);
 		mProgramCounter = lookupAddress;
 		std::cout << "Lookup Address: " << lookupAddress << std::endl;
@@ -588,7 +581,7 @@ private:
 		uint8_t lookupAddress = fetch() + mRegisterX;
 		std::cout << "Lookup address: " << std::hex << (int)lookupAddress << ", x being: " << std::hex << (int)mRegisterX << std::endl;
 
-		uint16_t address = mMemory[lookupAddress] + mMemory[lookupAddress + 1] << 8;
+		uint16_t address = mMemory[lookupAddress] + (mMemory[lookupAddress + 1] << 8);
 		std::cout << "Address: " << std::hex << (int)address << " lookupA: " << std::hex << (int)lookupAddress << std::endl;
 
 		uint8_t result = mMemory[address];
@@ -655,6 +648,7 @@ int main() {
 
 	uint8_t program[] = {
 		0xEA,
+		0xD0, 0x02,
 		0xA9, 0x09,
 		0xE8,
 		0xA5, 0x40,
@@ -692,7 +686,7 @@ int main() {
 	};
 
 	/*uint8_t programWithBranch[] = {
-		//LDX 10, LDY 5, 
+		//LDX 10, LDY 5,
 	};*/
 
 	uint8_t memory[] = {
@@ -707,7 +701,7 @@ int main() {
 	cpu.loadProgram(starting0500, sizeof(starting0500), 0x0500);
 	cpu.loadProgram(twoProgram, sizeof(twoProgram), 0x0120);
 	cpu.loadProgram(threeProgram, sizeof(threeProgram), 0x0150);
-	cpu.loadProgram(programWithBranch, sizeof(programWithBranch), 0x0210);
+	//cpu.loadProgram(programWithBranch, sizeof(programWithBranch), 0x0210);
 	cpu.loadProgram(memory, sizeof(memory), 0x0A24);
 	cpu.execute();
 }
