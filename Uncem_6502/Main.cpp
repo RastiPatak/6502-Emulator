@@ -37,6 +37,8 @@ enum OpCode {
 	BMI = 0x30,  //Branch on result minus
 	BNE = 0xD0,  //Branch on result non zero
 	BPL = 0x10,  //Branch on result plus NONE OF BRANCHES IMPLEMENTED YET
+	BVC = 0x50,
+	BVS = 0x70,
 
 	CPXImmedeate = 0xE0, //Compare X With Memory
 	CPXZeroP = 0xE4,
@@ -149,7 +151,7 @@ private:
 		case INX:
 			mRegisterX++;
 			setZeroAndNegativeFlags(mRegisterX);
-			std::cout << "RegisterX: " << std::hex << (int)mRegisterX << ", (" << mProgramCounter << "-1)" << std::endl;
+			std::cout << "RegisterX: " << std::hex << (int)mRegisterX << ", (" << mProgramCounter << ")" << std::endl;
 			break;
 		case DEX:
 			if (ISDEBUG) { std::cout << "\t" << "DEX"; }
@@ -193,22 +195,28 @@ private:
 			TransferXToStack();
 			break;
 		case BNE:
-			BranchNonZero();
+			branchNonZero();
 			break;
 		case BCS:
-			mProgramCounter += BranchCarrySet();
+			branchCarrySet();
 			break;
 		case BCC:
-			mProgramCounter += BranchCarryClear();
+			branchCarryClear();
 			break;
 		case BEQ:
-			mProgramCounter += BranchZero();
+			branchZero();
 			break;
 		case BMI:
-			mProgramCounter += BranchMinus();
+			branchMinus();
 			break;
 		case BPL:
-			mProgramCounter += BranchPlus();
+			branchPlus();
+			break;
+		case BVC:
+			branchOverflowClear();
+			break;
+		case BVS:
+			branchOverflowSet();
 			break;
 		case CPXImmedeate:
 			CompareXWithMemoryImmedeate();
@@ -457,99 +465,87 @@ private:
 		compareTwoNumbers(mRegisterY, valueToCompareTo, C, Z, N);
 	}
 
-	void BranchNonZero() {
-		std::cout << "BNE started, PC: " << mProgramCounter << std::endl;
-		int8_t fetchedByte = fetch();
-		if (Z == 0) {
+	void branchNonZero() {
+		int8_t fetchedByte = branchBase("BNE");
+		if (Z == 0)
+		{
 			mProgramCounter += fetchedByte;
-			std::cout << "Offset: " << static_cast<int>(fetchedByte) << std::endl;
+			branchDebugPrint("BNE", fetchedByte);
 		}
-		if (ISDEBUG) { std::cout << "\t" << "BNE" << "\t" << "#" << fetchedByte; }
 	}
 
-	int16_t BranchCarrySet() {
-		std::cout << "BCS started, PC: " << mProgramCounter << std::endl;
-		int16_t branchOffset = fetch() << 8; //Branch offset can be negative, due to how relative addressing works.
+	void branchCarrySet() {
+		int8_t fetchedByte = branchBase("BCS");
 		if (C == 1)
 		{
-
-			std::cout << "Offset: " << branchOffset << std::endl;
-
-			return branchOffset;
+			mProgramCounter += fetchedByte;
+			branchDebugPrint("BCS", fetchedByte);
 		}
-		else
-		{
-			return mProgramCounter;
-		}
-		if (ISDEBUG) { std::cout << "\t" << "BCS" << "\t" << "#" << branchOffset; }
 	}
 
-	int16_t BranchCarryClear() {
-		std::cout << "BCC started, PC: " << mProgramCounter << std::endl;
-		int16_t branchOffset = fetch() << 8; //Branch offset can be negative, due to how relative addressing works.
+	void branchCarryClear() {
+		int8_t fetchedByte = branchBase("BCC");
 		if (C == 0)
 		{
-
-			std::cout << "Offset: " << branchOffset << std::endl;
-
-			return branchOffset;
+			mProgramCounter += fetchedByte;
+			branchDebugPrint("BCC", fetchedByte);
 		}
-		else
-		{
-			return mProgramCounter;
-		}
-		if (ISDEBUG) { std::cout << "\t" << "BCC" << "\t" << "#" << branchOffset; }
 	}
 
-	int16_t BranchZero() {
-		std::cout << "BEQ started, PC: " << mProgramCounter << std::endl;
-		int16_t branchOffset = fetch() << 8; //Branch offset can be negative, due to how relative addressing works.
+	void branchZero() {
+		int8_t fetchedByte = branchBase("BEQ");
 		if (Z == 1)
 		{
-
-			std::cout << "Offset: " << branchOffset << std::endl;
-
-			return branchOffset;
+			mProgramCounter += fetchedByte;
+			branchDebugPrint("BEQ", fetchedByte);
 		}
-		else
-		{
-			return mProgramCounter;
-		}
-		if (ISDEBUG) { std::cout << "\t" << "BEQ" << "\t" << "#" << branchOffset; }
 	}
 
-	int16_t BranchMinus() {
-		std::cout << "BMI started, PC: " << mProgramCounter << std::endl;
-		int16_t branchOffset = fetch() << 8; //Branch offset can be negative, due to how relative addressing works.
+	void branchMinus() {
+		int8_t fetchedByte = branchBase("BMI");
 		if (N == 1)
 		{
-
-			std::cout << "Offset: " << branchOffset << std::endl;
-
-			return branchOffset;
+			mProgramCounter += fetchedByte;
+			branchDebugPrint("BMI", fetchedByte);
 		}
-		else
-		{
-			return mProgramCounter;
-		}
-		if (ISDEBUG) { std::cout << "\t" << "BMI" << "\t" << "#" << branchOffset; }
 	}
 
-	int16_t BranchPlus() {
-		std::cout << "BPL started, PC: " << mProgramCounter << std::endl;
-		int16_t branchOffset = fetch() << 8; //Branch offset can be negative, due to how relative addressing works.
+	void branchPlus() {
+		int8_t fetchedByte = branchBase("BPL");
 		if (N == 0)
 		{
-
-			std::cout << "Offset: " << branchOffset << std::endl;
-
-			return branchOffset;
+			mProgramCounter += fetchedByte;
+			branchDebugPrint("BPL", fetchedByte);
 		}
-		else
+	}
+
+	void branchOverflowClear() {
+		int8_t fetchedByte = branchBase("BVC");
+		if (V == 0)
 		{
-			return mProgramCounter;
+			mProgramCounter += fetchedByte;
+			branchDebugPrint("BVC", fetchedByte);
 		}
-		if (ISDEBUG) { std::cout << "\t" << "BPL" << "\t" << "#" << branchOffset; }
+	}
+
+	void branchOverflowSet() {
+		int8_t fetchedByte = branchBase("BVS");
+		if (V == 1)
+		{
+			mProgramCounter += fetchedByte;
+			branchDebugPrint("BVS", fetchedByte);
+		}
+	}
+
+	int8_t branchBase(char const* instruction) {
+		std::cout << instruction << " started, PC: " << mProgramCounter << std::endl;
+		return fetch();
+	}
+
+	void branchDebugPrint(char const* instruction, int8_t fetchedByte) {
+		if (ISDEBUG) {
+			std::cout << "\t" << instruction << " Offset: " << (static_cast<int>(fetchedByte) << (sizeof(int) * 8 - 8)) << std::endl;
+		}
 	}
 
 	uint16_t jumpAbsolute() {
@@ -647,8 +643,8 @@ private:
 int main() {
 
 	uint8_t program[] = {
-		0xEA,
-		0xD0, 0x02,
+		0xE8,
+		0x50, 0x00,
 		0xA9, 0x09,
 		0xE8,
 		0xA5, 0x40,
