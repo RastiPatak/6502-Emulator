@@ -544,7 +544,7 @@ private:
 
 	void branchDebugPrint(char const* instruction, int8_t fetchedByte) {
 		if (ISDEBUG) {
-			std::cout << "\t" << instruction << " Offset: " << (static_cast<int>(fetchedByte) << (sizeof(int) * 8 - 8)) << std::endl;
+			std::cout << "\t" << instruction << " Offset: "  << (static_cast<int>(fetchedByte) & 0xFF) << std::endl;
 		}
 	}
 
