@@ -1,8 +1,5 @@
 #include <iostream>
 
-
-#include <conio.h> 
-
 enum OpCode {
 	BRK = 0,
 	JMPAbs = 0x4C,
@@ -177,22 +174,22 @@ private:
 			V = 0;
 			break;
 		case TAX:
-			TransferAccToX();
+			transferAccToX();
 			break;
 		case TAY:
-			TransferAccToY();
+			transferAccToY();
 			break;
 		case TSX:
-			TransferStackToX();
+			transferStackToX();
 			break;
 		case TYA:
-			TransferYToAcc();
+			transferYToAcc();
 			break;
 		case TXA:
-			TransferXToAcc();
+			transferXToAcc();
 			break;
 		case TXS:
-			TransferXToStack();
+			transferXToStack();
 			break;
 		case BNE:
 			branchNonZero();
@@ -249,46 +246,45 @@ private:
 		}
 	}
 
-	void TransferAccToX()
+	void transferAccToX()
 	{
 		std::cout << "Transferring Accumulator to X" << mProgramCounter << std::endl;
 		mRegisterX = mAccumulator;
 		setZeroAndNegativeFlags(mRegisterX);
 	}
 
-	void TransferAccToY()
+	void transferAccToY()
 	{
 		std::cout << "Transferring Accumulator to Y" << mProgramCounter << std::endl;
 		mRegisterY = mAccumulator;
 		setZeroAndNegativeFlags(mRegisterY);
 	}
 
-	void TransferStackToX()
+	void transferStackToX()
 	{
-		std::cout << "Transferring Accumulator to X" << mProgramCounter << std::endl;
+		std::cout << "Transferring StackPointer to X" << mProgramCounter << std::endl;
 		mRegisterX = mStackPointer;
 		setZeroAndNegativeFlags(mRegisterX);
 	}
 
-	void TransferXToAcc()
+	void transferXToAcc()
 	{
 		std::cout << "Transferring X to Accumulator" << mProgramCounter << std::endl;
 		mAccumulator = mRegisterX;
 		setZeroAndNegativeFlags(mAccumulator);
 	}
 
-	void TransferYToAcc()
+	void transferYToAcc()
 	{
 		std::cout << "Transferring Y to Accumulator" << mProgramCounter << std::endl;
 		mAccumulator = mRegisterY;
 		setZeroAndNegativeFlags(mAccumulator);
 	}
 
-	void TransferXToStack()
+	void transferXToStack()
 	{
-		std::cout << "Transferring Accumulator to X" << mProgramCounter << std::endl;
+		std::cout << "Transferring X to StackPointer" << mProgramCounter << std::endl;
 		mStackPointer = mRegisterX;
-		setZeroAndNegativeFlags(mStackPointer);
 	}
 
 	uint8_t add(uint8_t val_a, uint8_t val_b, uint8_t& C, uint8_t& Z, uint8_t& N, uint8_t& V)
