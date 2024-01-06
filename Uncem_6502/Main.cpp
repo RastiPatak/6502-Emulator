@@ -64,11 +64,6 @@ public:
 		}
 	}
 
-	/*void clearConsole()
-	{
-		system("cls");
-	}*/
-
 	void execute() {
 		while (true) {
 			uint8_t opcode = fetch();
@@ -287,129 +282,61 @@ private:
 		mStackPointer = mRegisterX;
 	}
 
-	uint8_t add(uint8_t val_a, uint8_t val_b, uint8_t& C, uint8_t& Z, uint8_t& N, uint8_t& V)
+	uint8_t add(uint8_t valueA, uint8_t valueB, bool carry, bool bcd)
 	{
-		uint16_t res = val_a;
+		uint16_t result;
 
-		res += val_b;
-
-		if (C) { res += 1; }
-
-		// unsigned 0..255
-		// signed -128..0..+127
-
-		if (res > 255)
-		{
-			C = 1;
-		}
-		else
-		{
-			C = 0;
-		}
-
-		if (res == 0)
-		{
-			Z = 1;
-		}
-		else
-		{
-			Z = 0;
-		}
-
-		if (res > 127)
-		{
-			N = 1;
-		}
-		else
-		{
-			N = 0;
-		}
-
-		V = 0;
-		if (val_a <= 127 && val_b <= 127)
-		{
-			if (res > 127)
-			{
-				V = 1;
+		if (bcd) {
+			bool bcdCarry = false;
+			result = (valueA & 0xF) + (valueB & 0xF) + carry;
+			if (result > 9) {
+				result -= 10;
+				bcdCarry = true;
 			}
-		}
-		else if (val_a >= 128 && val_b >= 128)
-		{
-			if (res < 128)
-			{
-				V = 1;
+
+			uint16_t leftNibble = (valueA & 0xF0) + (valueB & 0xF0) + bcdCarry;
+			if (leftNibble > 9) {
+				leftNibble -= 10;
+				leftNibble += 0x10;
 			}
+
+			result += leftNibble << 4;
+		}
+		else {
+			result = = valueA + valueB + (carry ? 1 : 0);
 		}
 
-		return res;
+		C = (result & 0x100) != 0;
+		V = ((valueA ^ valueB) & 0x80) == 0 && ((valueA ^ result) & 0x80) != 0;
+		Z = (result & 0xFF) == 0;
+		N = (result & 0x80) != 0;
+
+		return static_cast<uint8_t>(result & 0xFF);
 	}
 
-	uint8_t sub(uint8_t val_a, uint8_t val_b, uint8_t& C, uint8_t& Z, uint8_t& N, uint8_t& V)
+	uint8_t sub(uint8_t valueA, uint8_t valueB, bool carry, bool bcd)
 	{
-		uint16_t res = val_a;
-		res -= val_b;
+		uint16_t result;
 
-		if (!C) { res -= 1; }
+		if (bcd) {
+			bool bcdCarry = true;
+			result = (valueA & 0xF) + ((~valueB) & 0xF) + (bcdCarry ? 1 : 0);
+			if ((valueA & 0xF) < (valueB & 0xF))
+				bcdCarry = false;
 
-		// unsigned 0..255
-		// signed -128..0..+127
-
-		if (res > 255) // if the result if more than 255 that means the number looks like this, at least 0000 0001 0000 0000, which raises the carry flag in this case 
-		{
-			C = 0;
+			uint16_t leftNibble = (valueA & 0xF0) + ((~valueB) & 0xF0) + (bcdCarry ? 1 : 0);
+			result += leftNibble << 4;
 		}
-		else
-		{
-			C = 1;
+		else {
+			result = valueA + (~valueB) + carry;
 		}
 
-		if (res == 0)
-		{
-			Z = 1;
-		}
-		else
-		{
-			Z = 0;
-		}
+		C = (result & 0x100) != 0;
+		V = ((valueA ^ valueB) & 0x80) == 0 && ((valueA ^ result) & 0x80) != 0;
+		Z = (result & 0xFF) == 0;
+		N = (result & 0x80) != 0;
 
-		if (res > 127)
-		{
-			N = 1;
-		}
-		else
-		{
-			N = 0;
-		}
-
-		V = 0;
-
-		int8_t val_as = val_a; //signing numbers
-		int8_t val_bs = val_b;
-		/*int8_t ress = res;*/
-
-		//raising overflow flag. It happens if anomalous answer is produced
-		if (val_a < 127 && val_b < 127) // if both numbers are greater than 0, but result of subtraction is less than 0 (can happen)
-		{
-			if (val_a > val_b)
-			{
-				if (res > 127)
-				{
-					V = 1;
-				}
-			}
-		}
-		else if (val_a > 127 && val_b > 127) // if both numbers are less than 0, but result of subtraction is greater than 0 (can happen)
-		{
-			if (val_a < val_b)
-			{
-				if (res < 127)
-				{
-					V = 1;
-				}
-			}
-		}
-
-		return res;
+		return static_cast<uint8_t>(result & 0xFF);
 	}
 
 	void compareTwoNumbers(uint8_t val_a, uint8_t val_b, uint8_t& C, uint8_t& Z, uint8_t& N)
@@ -554,8 +481,6 @@ private:
 		return jumpAddress;
 	}
 
-
-
 	uint16_t jumpIndirect() {
 		std::cout << "JMP (indirect) started, PC: " << mProgramCounter << std::endl;
 
@@ -677,10 +602,6 @@ int main() {
 		0xBD, 0x20, 0x0A
 	};
 
-	/*uint8_t programWithBranch[] = {
-		//LDX 10, LDY 5,
-	};*/
-
 	uint8_t memory[] = {
 		0x45
 	};
@@ -693,7 +614,6 @@ int main() {
 	cpu.loadProgram(starting0500, sizeof(starting0500), 0x0500);
 	cpu.loadProgram(twoProgram, sizeof(twoProgram), 0x0120);
 	cpu.loadProgram(threeProgram, sizeof(threeProgram), 0x0150);
-	//cpu.loadProgram(programWithBranch, sizeof(programWithBranch), 0x0210);
 	cpu.loadProgram(memory, sizeof(memory), 0x0A24);
 	cpu.execute();
 }
