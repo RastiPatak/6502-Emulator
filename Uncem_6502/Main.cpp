@@ -37,11 +37,11 @@ enum OpCode {
 	BVC = 0x50,
 	BVS = 0x70,
 
-	CPXImmedeate = 0xE0, //Compare X With Memory
+	CPXImmediate = 0xE0, //Compare X With Memory
 	CPXZeroP = 0xE4,
 	CPXAbs = 0xEC,
 
-	CPYImmedeate = 0xC0, //Compare Y With Memory
+	CPYImmediate = 0xC0, //Compare Y With Memory
 	CPYZeroP = 0xC4,
 	CPYAbs = 0xCC
 };
@@ -210,23 +210,23 @@ private:
 		case BVS:
 			branchOverflowSet();
 			break;
-		case CPXImmedeate:
-			CompareXWithMemoryImmedeate();
+		case CPXImmediate:
+			compareXImmediate();
 			break;
 		case CPXAbs:
-			CompareXWithMemoryAbsolute();
+			compareXAbsolute();
 			break;
 		case CPXZeroP:
-			CompareXWithMemoryZeroPage();
+			compareXZeroPage();
 			break;
-		case CPYImmedeate:
-			CompareYWithMemoryImmedeate();
+		case CPYImmediate:
+			compareYImmediate();
 			break;
 		case CPYAbs:
-			CompareYWithMemoryAbsolute();
+			compareYAbsolute();
 			break;
 		case CPYZeroP:
-			CompareYWithMemoryZeroPage();
+			compareYZeroPage();
 			break;
 		case NOP:
 			break;
@@ -339,53 +339,47 @@ private:
 		return static_cast<uint8_t>(result & 0xFF);
 	}
 
-	void compareTwoNumbers(uint8_t val_a, uint8_t val_b, uint8_t& C, uint8_t& Z, uint8_t& N)
+	void compareBase(uint8_t valueA, uint8_t valueB)
 	{
-		C = 1;
-		uint8_t dummyV; // Overflow flag is not being raised during operations it normally is raised in. Thats why i let it be, but i dont use it during CMP operations, replacing it with a dummy.
-		//sub(val_a, val_b, C, Z, N, dummyV);
+		uint8_t tempVSave = V;
+		uint8_t result = sub(valueA, valueB, false, false);
+		V = tempVSave;
 	}
 
-	void CompareXWithMemoryImmedeate()
+	void compareXImmediate()
 	{
-		uint8_t valueToCompareTo = fetch();
-		compareTwoNumbers(mRegisterX, valueToCompareTo, C, Z, N);
+		uint8_t value = fetch();
+		compareBase(mRegisterX, value);
 	}
 
-	void CompareXWithMemoryAbsolute()
+	void compareXAbsolute()
 	{
-		uint16_t lookupAddress = fetch() + (fetch() << 8);
-		uint8_t valueToCompareTo = mMemory[lookupAddress];
-		compareTwoNumbers(mRegisterX, valueToCompareTo, C, Z, N);
+		uint8_t value = mMemory[fetch() + (fetch() << 8)];
+		compareBase(mRegisterX, value);
 	}
 
-	void CompareXWithMemoryZeroPage()
+	void compareXZeroPage()
 	{
-		uint16_t lookupAddress = fetch();
-		uint8_t valueToCompareTo = mMemory[lookupAddress];
-		compareTwoNumbers(mRegisterX, valueToCompareTo, C, Z, N);
+		uint8_t value = mMemory[fetch()];
+		compareBase(mRegisterX, value);
 	}
 
-
-	void CompareYWithMemoryImmedeate()
+	void compareYImmediate()
 	{
-		uint8_t valueToCompareTo = fetch();
-		uint8_t comparisonResult = mRegisterY - valueToCompareTo;
-		compareTwoNumbers(mRegisterY, valueToCompareTo, C, Z, N);
+		uint8_t value = fetch();
+		compareBase(mRegisterY, value);
 	}
 
-	void CompareYWithMemoryAbsolute()
+	void compareYAbsolute()
 	{
-		uint16_t lookupAddress = fetch() + (fetch() << 8);
-		uint8_t valueToCompareTo = mMemory[lookupAddress];
-		compareTwoNumbers(mRegisterY, valueToCompareTo, C, Z, N);
+		uint8_t value = mMemory[fetch() + (fetch() << 8)];
+		compareBase(mRegisterY, value);
 	}
 
-	void CompareYWithMemoryZeroPage()
+	void compareYZeroPage()
 	{
-		uint16_t lookupAddress = fetch();
-		uint8_t valueToCompareTo = mMemory[lookupAddress];
-		compareTwoNumbers(mRegisterY, valueToCompareTo, C, Z, N);
+		uint8_t value = mMemory[fetch()];
+		compareBase(mRegisterY, value);
 	}
 
 	void branchNonZero() {
