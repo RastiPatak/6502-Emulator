@@ -303,7 +303,7 @@ private:
 			result += leftNibble << 4;
 		}
 		else {
-			result = = valueA + valueB + (carry ? 1 : 0);
+			result = valueA + valueB + (carry ? 1 : 0);
 		}
 
 		C = (result & 0x100) != 0;
@@ -343,7 +343,7 @@ private:
 	{
 		C = 1;
 		uint8_t dummyV; // Overflow flag is not being raised during operations it normally is raised in. Thats why i let it be, but i dont use it during CMP operations, replacing it with a dummy.
-		sub(val_a, val_b, C, Z, N, dummyV);
+		//sub(val_a, val_b, C, Z, N, dummyV);
 	}
 
 	void CompareXWithMemoryImmedeate()
