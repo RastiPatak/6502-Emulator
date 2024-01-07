@@ -1,9 +1,13 @@
 #include <iostream>
+#include <iomanip>
 
 enum OpCode {
 	BRK = 0,
 	JMPAbs = 0x4C,
 	JMPInd = 0x6C,
+
+	//Load Instructions
+
 	LDAIndX = 0xA1,
 	LDAZeroP = 0xA5,
 	LDAImmediate = 0xA9,
@@ -12,21 +16,63 @@ enum OpCode {
 	LDAZeroPX = 0xB5,
 	LDAAbsY = 0xB9,
 	LDAAbsX = 0xBD,
+
+	LDXImmediate = 0xA2,
+	LDXZeroP = 0xA6,
+	LDXZeroPY = 0xB6,
+	LDXAbsY = 0xAE,
+	LDXAbs = 0xBE,
+
+	LDYImmediate = 0xA0,
+	LDYZeroP = 0xA4,
+	LDYZeroPX = 0xB4,
+	LDYAbsX = 0xAC,
+	LDYAbs = 0xBC,
+
+	//Save instructions
+
+	STAZeroP = 0x85,
+	STAZeroPX = 0x95,
+	STAAbs = 0x8D,
+	STAAbsX = 0x9D,
+	STAAbsY = 0x99,
+	STAIndX = 0x81,
+	STAIndY = 0x91,
+
+	STXZeroP = 0x86,
+	STXZeroPY = 0x96,
+	STXAbs = 0x8E,
+
+	STYZeroP = 0x84,
+	STYZeroPX = 0x94,
+	STYAbs = 0x8C,
+
+	//increment, decrement instructions
+
 	INY = 0xC8,
 	INX = 0xE8,
 	DEX = 0xCA, // Decrement X by 1
 	DEY = 0x88, // Decrement Y by 1
+
+	//flag instructions
+
 	CLC = 0x18, //Clear carry
 	CLD = 0xD8, //Clear Decimal Mode
 	CLI = 0x58, //Clear Interrupt Disable Bit
 	CLV = 0xB8, //Clear Overflow flag
+
 	NOP = 0xEA,
+
+	//Transfer instructions
+
 	TAX = 0xAA, //Transfer Accumulator to X
 	TAY = 0xA8, //Transfer Accumulator to Y
 	TSX = 0xBA, //Transfer Stack Pointer to X
 	TXA = 0x8A, //Transfer X to Accumulator
 	TXS = 0x9A, //Transfer X to Stack Pointer
 	TYA = 0x98, // Transfer Y to Accumulator
+
+	//Branch instructions
 
 	BCC = 0x90, //Branch on Carry Clear
 	BCS = 0xB0, //Branch on Carry Set
@@ -36,6 +82,17 @@ enum OpCode {
 	BPL = 0x10,  //Branch on result plus NONE OF BRANCHES IMPLEMENTED YET
 	BVC = 0x50,
 	BVS = 0x70,
+
+	//Compare instructions
+
+	CMPImmediate = 0xC9,
+	CMPZeroP = 0xC5,
+	CMPZeroPX = 0xD5,
+	CMPAbs = 0xCD,
+	CMPAbsX = 0xDD,
+	CMPAbsY = 0xD9,
+	CMPIndX = 0xC1,
+	CMPIndY = 0xD1,
 
 	CPXImmediate = 0xE0, //Compare X With Memory
 	CPXZeroP = 0xE4,
@@ -74,7 +131,7 @@ public:
 		}
 		std::cout << std::endl;
 	}
-	
+
 private:
 	uint8_t mMemory[65536];
 	uint8_t mAccumulator, mRegisterX, mRegisterY;
@@ -88,12 +145,30 @@ private:
 		return data;
 	}
 
+	uint16_t fetch16() {
+		return fetch() + (fetch() << 8);
+	}
+
 	void printRegisterInfo()
 	{
-		std::cout << std::hex << "\t" << ";" << " A:" << (int)mAccumulator << " X:" << (int)mRegisterX << " Y:" << (int)mRegisterY << " ST: CZIDBVN " << (int)C << (int)Z << (int)I << (int)D << (int)B << (int)V << (int)N << " PC:" << mProgramCounter << " SP:" << mStackPointer << "\n";
+		std::cout << std::hex << "\t" << ";"
+			<< std::setfill('0')
+			<< " A:" << std::setw(2) << (unsigned int)mAccumulator
+			<< " X:" << std::setw(2) << (unsigned int)mRegisterX
+			<< " Y:" << std::setw(2) << (unsigned int)mRegisterY
+			<< " ST: CZIDBVN " << std::setw(1) << (int)C << (int)Z << (int)I << (int)D << (int)B << (int)V << (int)N
+			<< " PC:" << std::setw(4) << (uint16_t)mProgramCounter
+			<< " SP:" << std::setw(2) << (int)mStackPointer
+			<< std::setw(0) << std::setfill(' ')
+			<< "\n";
 	}
 
 	void executeOpcode(OpCode opcode) {
+		if (ISDEBUG)
+		{
+			// fetch already performed before, so we write PC before fetch
+			std::cout << std::hex << std::setw(4) << std::setfill('0') << (mProgramCounter - 1) << std::setfill(' ') << std::setw(0) << "\t";
+		}
 		switch (opcode) {
 		case JMPAbs:
 			mProgramCounter = jumpAbsolute();
@@ -101,70 +176,174 @@ private:
 		case JMPInd:
 			mProgramCounter = jumpIndirect();
 			break;
+
+			//LOAD OPERATIONS
+
 		case LDAIndX:
-			mAccumulator = ldaIndirectX();
+			mAccumulator = loadIndirectX("LDA");
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
 		case LDAZeroP:
-			mAccumulator = ldaZeroPage();
+			mAccumulator = loadZeroPage("LDA");
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
 		case LDAImmediate:
-			mAccumulator = ldaImmediate();
+			mAccumulator = loadImmediate("LDA");
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
 		case LDAAbs:
-			mAccumulator = ldaAbsolute();
+			mAccumulator = loadAbsolute("LDA");
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
 		case LDAIndY:
-			mAccumulator = ldaIndirectY();
+			mAccumulator = loadIndirectY("LDA");
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
 		case LDAZeroPX:
-			mAccumulator = ldaZeroPageX();
+			mAccumulator = loadZeroPageX("LDA");
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
 		case LDAAbsY:
-			mAccumulator = ldaAbsoluteY();
+			mAccumulator = loadAbsoluteY("LDA");
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
 		case LDAAbsX:
-			mAccumulator = ldaAbsoluteX();
+			mAccumulator = loadAbsoluteX("LDA");
 			setZeroAndNegativeFlags(mAccumulator);
 			break;
+
+		case LDXAbsY:
+			mRegisterX = loadAbsoluteY("LDX");
+			setZeroAndNegativeFlags(mRegisterX);
+			break;
+		case LDXZeroP:
+			mRegisterX = loadZeroPage("LDX");
+			setZeroAndNegativeFlags(mRegisterX);
+			break;
+		case LDXZeroPY:
+			mRegisterX = loadZeroPageY("LDX");
+			setZeroAndNegativeFlags(mRegisterX);
+			break;
+		case LDXAbs:
+			mRegisterX = loadAbsolute("LDX");
+			setZeroAndNegativeFlags(mRegisterX);
+			break;
+		case LDXImmediate:
+			mRegisterX = loadImmediate("LDX");
+			setZeroAndNegativeFlags(mRegisterX);
+			break;
+
+		case LDYAbsX:
+			mRegisterY = loadAbsoluteX("LDY");
+			setZeroAndNegativeFlags(mRegisterY);
+			break;
+		case LDYZeroP:
+			mRegisterY = loadZeroPage("LDY");
+			setZeroAndNegativeFlags(mRegisterY);
+			break;
+		case LDYZeroPX:
+			mRegisterY = loadZeroPageX("LDY");
+			setZeroAndNegativeFlags(mRegisterY);
+			break;
+		case LDYAbs:
+			mRegisterY = loadAbsolute("LDY");
+			setZeroAndNegativeFlags(mRegisterY);
+			break;
+		case LDYImmediate:
+			mRegisterY = loadImmediate("LDY");
+			setZeroAndNegativeFlags(mRegisterY);
+			break;
+
+			//SAVE OPERATIONS
+
+		case STAZeroP:
+			saveZeroPage("STA", mAccumulator);
+			break;
+		case STAZeroPX:
+			saveZeroPageX("STA", mAccumulator);
+			break;
+		case STAAbs:
+			saveAbsolute("STA", mAccumulator);
+			break;
+		case STAAbsX:
+			saveAbsoluteX("STA", mAccumulator);
+			break;
+		case STAAbsY:
+			saveAbsoluteY("STA", mAccumulator);
+			break;
+		case STAIndX:
+			saveIndirectX("STA", mAccumulator);
+			break;
+		case STAIndY:
+			saveIndirectY("STA", mAccumulator);
+			break;
+
+
+		case STXZeroP:
+			saveZeroPage("STX", mRegisterX);
+			break;
+		case STXZeroPY:
+			saveZeroPageY("STX", mRegisterX);
+			break;
+		case STXAbs:
+			saveAbsolute("STX", mRegisterX);
+			break;
+
+
+		case STYZeroP:
+			saveZeroPage("STY", mRegisterY);
+			break;
+		case STYZeroPX:
+			saveZeroPageX("STY", mRegisterY);
+			break;
+		case STYAbs:
+			saveAbsolute("STY", mRegisterY);
+			break;
+
+			//INCREMENT AND DECREMENT
+
 		case INY:
+			if (ISDEBUG) { std::cout << "INY" << "\t"; }
 			mRegisterY++;
 			setZeroAndNegativeFlags(mRegisterY);
 			break;
 		case INX:
+			if (ISDEBUG) { std::cout << "INX" << "\t"; }
 			mRegisterX++;
 			setZeroAndNegativeFlags(mRegisterX);
-			std::cout << "RegisterX: " << std::hex << static_cast<int>(mRegisterX) << ", (" << mProgramCounter << ")" << std::endl;
 			break;
 		case DEX:
-			if (ISDEBUG) { std::cout << "\t" << "DEX"; }
+			if (ISDEBUG) { std::cout << "DEX" << "\t"; }
 			mRegisterX--;
 			setZeroAndNegativeFlags(mRegisterX);
 			break;
 		case DEY:
-			if (ISDEBUG) { std::cout << "\t" << "DEY"; }
+			if (ISDEBUG) { std::cout << "DEY" << "\t"; }
 			mRegisterY--;
 			setZeroAndNegativeFlags(mRegisterY);
 			break;
+
+			//FLAG OPERATIONS
+
 		case CLC:
-			if (ISDEBUG) { std::cout << "\t" << "CLC"; }
+			if (ISDEBUG) { std::cout << "CLC" << "\t"; }
 			C = 0;
 			break;
 		case CLD:
+			if (ISDEBUG) { std::cout << "CLD" << "\t"; }
 			D = 0;
 			break;
 		case CLI:
+			if (ISDEBUG) { std::cout << "CLI" << "\t"; }
 			I = 0;
 			break;
 		case CLV:
+			if (ISDEBUG) { std::cout << "CLV" << "\t"; }
 			V = 0;
 			break;
+
+			//TRANSFER OPERATIONS
+
 		case TAX:
 			transferAccToX();
 			break;
@@ -183,6 +362,9 @@ private:
 		case TXS:
 			transferXToStack();
 			break;
+
+			//BRANCHING OPERATIONS
+
 		case BNE:
 			branchNonZero();
 			break;
@@ -207,25 +389,58 @@ private:
 		case BVS:
 			branchOverflowSet();
 			break;
+
+			//COMPARE OPERATIONS
+
 		case CPXImmediate:
-			compareXImmediate();
+			compareImmediate("CPX", mRegisterX);
 			break;
 		case CPXAbs:
-			compareXAbsolute();
+			compareAbsolute("CPX", mRegisterX);
 			break;
 		case CPXZeroP:
-			compareXZeroPage();
+			compareZeroPage("CPX", mRegisterX);
 			break;
+
 		case CPYImmediate:
-			compareYImmediate();
+			compareImmediate("CPY", mRegisterY);
 			break;
 		case CPYAbs:
-			compareYAbsolute();
+			compareAbsolute("CPY", mRegisterY);
 			break;
 		case CPYZeroP:
-			compareYZeroPage();
+			compareZeroPage("CPY", mRegisterY);
 			break;
+
+		case CMPImmediate:
+			compareImmediate("CMP", mAccumulator);
+			break;
+		case CMPZeroP:
+			compareZeroPage("CMP", mAccumulator);
+			break;
+		case CMPZeroPX:
+			compareZeroPageX("CMP", mAccumulator);
+			break;
+		case CMPAbs:
+			compareAbsolute("CMP", mAccumulator);
+			break;
+		case CMPAbsX:
+			compareAbsoluteX("CMP", mAccumulator);
+			break;
+		case CMPAbsY:
+			compareAbsoluteY("CMP", mAccumulator);
+			break;
+		case CMPIndX:
+			compareIndX("CMP", mAccumulator);
+			break;
+		case CMPIndY:
+			compareIndY("CMP", mAccumulator);
+			break;
+
+			//MISCELANNEOUS OPERATIONS
+
 		case NOP:
+			if (ISDEBUG) { std::cout << "NOP" << "\t"; }
 			break;
 		default:
 			printMemory();
@@ -240,90 +455,44 @@ private:
 
 	void transferAccToX()
 	{
-		std::cout << "Transferring Accumulator to X" << mProgramCounter << std::endl;
+		if (ISDEBUG) { std::cout << "TAX" << "\t"; }
 		mRegisterX = mAccumulator;
 		setZeroAndNegativeFlags(mRegisterX);
 	}
 
 	void transferAccToY()
 	{
-		std::cout << "Transferring Accumulator to Y" << mProgramCounter << std::endl;
+		if (ISDEBUG) { std::cout << "TAY" << "\t"; }
 		mRegisterY = mAccumulator;
 		setZeroAndNegativeFlags(mRegisterY);
 	}
 
 	void transferStackToX()
 	{
-		std::cout << "Transferring StackPointer to X" << mProgramCounter << std::endl;
+		if (ISDEBUG) { std::cout << "TSX" << "\t"; }
 		mRegisterX = mStackPointer;
 		setZeroAndNegativeFlags(mRegisterX);
 	}
 
 	void transferXToAcc()
 	{
-		std::cout << "Transferring X to Accumulator" << mProgramCounter << std::endl;
+		if (ISDEBUG) { std::cout << "TXA" << "\t"; }
 		mAccumulator = mRegisterX;
 		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void transferYToAcc()
 	{
-		std::cout << "Transferring Y to Accumulator" << mProgramCounter << std::endl;
+		if (ISDEBUG) { std::cout << "TYA" << "\t"; }
 		mAccumulator = mRegisterY;
 		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void transferXToStack()
 	{
-		std::cout << "Transferring X to StackPointer" << mProgramCounter << std::endl;
+		if (ISDEBUG) { std::cout << "TXS" << "\t"; }
 		mStackPointer = mRegisterX;
 	}
-
-	//
-	// AND "&"
-	// 0011
-	// 0101
-	// 0001   
-
-	// OR "!"
-	// 0011
-	// 0101
-	// 0111   
-
-	// XOR "^"
-	// 0011
-	// 0101
-	// 0110
-
-	// INV "~"  
-	// 0011
-	// 1100
-
-	// ROR(1) ">>"
-	// 0101
-	// 0010
-
-	// ROL(1) "<<"
-	// 0101
-	// 1010
-
-	// BIN
-	// 00001111
-	//    0   F
-
-	// BCD
-	//    1   5
-	// 00010101
-
-	// 123456 = 56 34 12
-
-	//    1   5
-	// 00010101
-	// 00000111
-	//    0   7
-	// 0002(1)2
-	//     0010 
-	// 00100010  
 
 	uint8_t add(uint8_t valueA, uint8_t valueB, bool carry, bool bcd)
 	{
@@ -337,10 +506,9 @@ private:
 				bcdCarry = true;
 			}
 
-			uint16_t leftNibble = (valueA & 0xF0) + (valueB & 0xF0) + bcdCarry;
+			uint16_t leftNibble = ((valueA & 0xF0) >> 4) + ((valueB & 0xF0) >> 4) + bcdCarry;
 			if (leftNibble > 9) {
 				leftNibble -= 10;
-				leftNibble += 0x10;
 			}
 
 			result += leftNibble << 4;
@@ -363,7 +531,7 @@ private:
 
 		if (bcd) {
 			bool bcdCarry = true;
-			result = (valueA & 0xF) + ((~valueB) & 0xF) + (bcdCarry ? 1 : 0);
+			result = (valueA & 0xF) + ((~valueB) & 0xF) + (bcdCarry ? 1 : 0); //BCDcarry will always be true here, if i am not mistaken?
 			if ((valueA & 0xF) < (valueB & 0xF))
 				bcdCarry = false;
 
@@ -389,41 +557,127 @@ private:
 		V = tempVSave;
 	}
 
-	void compareXImmediate()
+	/*void compareXImmediate()
 	{
 		uint8_t value = fetch();
+		if (ISDEBUG) { std::cout << "CPX" << "\t" << "#" << (int)value; }
 		compareBase(mRegisterX, value);
 	}
 
 	void compareXAbsolute()
 	{
-		uint8_t value = mMemory[fetch() + (fetch() << 8)];
+		uint16_t addr = fetch16();
+		uint8_t value = mMemory[addr];
+		if (ISDEBUG) { std::cout << "CPX" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
 		compareBase(mRegisterX, value);
 	}
 
 	void compareXZeroPage()
 	{
-		uint8_t value = mMemory[fetch()];
+		uint8_t addr = fetch();
+		uint8_t value = mMemory[addr];
+		if (ISDEBUG) { std::cout << "CPX" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
 		compareBase(mRegisterX, value);
 	}
 
 	void compareYImmediate()
 	{
 		uint8_t value = fetch();
+		if (ISDEBUG) { std::cout << "CPY" << "\t" << "#" << (int)value; }
 		compareBase(mRegisterY, value);
 	}
 
 	void compareYAbsolute()
 	{
-		uint8_t value = mMemory[fetch() + (fetch() << 8)];
+		uint16_t addr = fetch16();
+		uint8_t value = mMemory[fetch16()];
+		if (ISDEBUG) { std::cout << "CPY" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
 		compareBase(mRegisterY, value);
 	}
 
 	void compareYZeroPage()
 	{
-		uint8_t value = mMemory[fetch()];
+		uint8_t addr = fetch();
+		uint8_t value = mMemory[addr];
+		if (ISDEBUG) { std::cout << "CPY" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
 		compareBase(mRegisterY, value);
+	}*/
+
+
+
+	//"VAL" IN ALL COMPARE OPERATIONS IS VALUE OF THE CHOSEN REGISTER AND IS NOT THE VALUE IT IS BEING COMPARED WITH.
+	//VALUE THAT IT IS BEING COMPARED TO IS NAMED "VALUE" IN CODE
+
+
+
+	void compareImmediate(std::string instruction, uint8_t val)
+	{
+		uint8_t value = fetch();
+		if (ISDEBUG) { std::cout << instruction << "\t" << "#" << (int)value; }
+		compareBase(val, value);
 	}
+
+	void compareAbsolute(std::string instruction, uint8_t val)
+	{
+		uint16_t addr = fetch16();
+		uint8_t value = mMemory[fetch16()];
+		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
+		compareBase(val, value);
+	}
+
+	void compareZeroPage(std::string instruction, uint8_t val)
+	{
+		uint8_t addr = fetch();
+		uint8_t value = mMemory[addr];
+		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+		compareBase(val, value);
+	}
+
+	void compareZeroPageX(std::string instruction, uint8_t val)
+	{
+		uint8_t addr = fetch();
+		uint8_t value = mMemory[addr];
+		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
+		compareBase(val, value);
+	}
+
+	void compareAbsoluteX(std::string instruction, uint8_t val)
+	{
+		uint16_t addr = fetch16() + mRegisterX;
+		uint8_t value = mMemory[fetch16()];
+		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
+		compareBase(val, value);
+	}
+
+	void compareAbsoluteY(std::string instruction, uint8_t val)
+	{
+		uint16_t addr = fetch16() + mRegisterY;
+		uint8_t value = mMemory[fetch16()];
+		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
+		compareBase(val, value);
+	}
+
+	void compareIndY(std::string instruction, uint8_t val)
+	{
+		uint8_t lookupaddress = fetch();
+
+		uint16_t addr = (mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY;
+		uint8_t value = mMemory[addr];
+		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
+		compareBase(val, value);
+	}
+
+	void compareIndX(std::string instruction, uint8_t val)
+	{
+		uint8_t lookupaddress = fetch();
+
+		uint16_t addr = (mMemory[lookupaddress + mRegisterX] + mMemory[lookupaddress + mRegisterX + 1] << 8);
+		uint8_t value = mMemory[addr];
+		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
+		compareBase(val, value);
+	}
+
+
 
 	void branchNonZero() {
 		int8_t fetchedByte = branchBase("BNE");
@@ -498,98 +752,187 @@ private:
 	}
 
 	int8_t branchBase(char const* instruction) {
-		std::cout << instruction << " started, PC: " << mProgramCounter << std::endl;
-		return fetch();
+		if (ISDEBUG) { std::cout << instruction; }
+		int8_t offset = fetch();
+		if (ISDEBUG) { std::cout << "\t" << (int)offset; }
+		return offset;
 	}
 
 	void branchDebugPrint(char const* instruction, int8_t fetchedByte) {
-		if (ISDEBUG) {
-			std::cout << "\t" << instruction << " Offset: "  << (static_cast<int>(fetchedByte) & 0xFF) << std::endl;
+		if (ISDEBUG)
+		{
+			std::cout << ";" << "->";
 		}
 	}
 
 	uint16_t jumpAbsolute() {
-		std::cout << "JMP (absolute) started, PC: " << mProgramCounter << std::endl;
+		//std::cout << "JMP (absolute) started, PC: " << mProgramCounter << std::endl;
 
-		uint16_t jumpAddress = fetch() + (fetch() << 8);
+		uint16_t jumpAddress = fetch16();
 
-		std::cout << "New Address: " << jumpAddress << std::endl;
-		if (ISDEBUG) { std::cout << "\t" << "JMP" << "\t" << "#" << jumpAddress; }
+		//std::cout << "New Address: " << jumpAddress << std::endl;
+		if (ISDEBUG) { std::cout << "JMP" << "\t" << "#" << jumpAddress; }
 		return jumpAddress;
 	}
 
 	uint16_t jumpIndirect() {
-		std::cout << "JMP (indirect) started, PC: " << mProgramCounter << std::endl;
+		//std::cout << "JMP (indirect) started, PC: " << mProgramCounter << std::endl;
 
-		uint16_t lookupAddress = fetch() + (fetch() << 8);
+		uint16_t lookupAddress = fetch16();
 		mProgramCounter = lookupAddress;
-		std::cout << "Lookup Address: " << lookupAddress << std::endl;
+		//std::cout << "Lookup Address: " << lookupAddress << std::endl;
 
-		uint16_t jumpAddress = fetch() + (fetch() << 8);
-		std::cout << "New Address: " << jumpAddress << std::endl;
-		if (ISDEBUG) { std::cout << "\t" << "JMP" << "\t" << "" << lookupAddress; }
+		uint16_t jumpAddress = fetch16();
+		//std::cout << "New Address: " << jumpAddress << std::endl;
+		if (ISDEBUG) { std::cout << "JMP" << "\t" << "(" << "$" << std::hex << std::setw(4) << std::setfill('0') << lookupAddress << ")"; }
 		return jumpAddress;
 	}
 
-	uint8_t ldaIndirectX() {
-		uint8_t lookupAddress = fetch() + mRegisterX;
-		std::cout << "Lookup address: " << std::hex << static_cast<int>(lookupAddress) << ", x being: " << std::hex << static_cast<int>(mRegisterX) << std::endl;
+	uint8_t loadIndirectX(const char* instruction) {
+		uint8_t lookupAddress = fetch();
+
+		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << (int)lookupAddress << ",x)"; }
+
+		lookupAddress += mRegisterX;
+		//std::cout << "Lookup address: " << std::hex << static_cast<int>(lookupAddress) << ", x being: " << std::hex << static_cast<int>(mRegisterX) << std::endl;
 
 		uint16_t address = mMemory[lookupAddress] + (mMemory[lookupAddress + 1] << 8);
-		std::cout << "Address: " << std::hex << static_cast<int>(address) << " lookupA: " << std::hex << static_cast<int>(lookupAddress) << std::endl;
+		//std::cout << "Address: " << std::hex << static_cast<int>(address) << " lookupA: " << std::hex << static_cast<int>(lookupAddress) << std::endl;
 
 		uint8_t result = mMemory[address];
-		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
+		//std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
+
 		return result;
 	}
 
-	uint8_t ldaZeroPage() {
-		uint8_t result = mMemory[fetch()];
-		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
+	uint8_t loadZeroPage(std::string instruction) {
+		uint8_t addr = fetch();
+		uint8_t result = mMemory[addr];
+		if (ISDEBUG) { std::cout << instruction << "\t" << (int)addr; }
+		//std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
 	}
 
-	uint8_t ldaImmediate() {
+	uint8_t loadImmediate(std::string instruction) {
 		uint8_t result = fetch();
-		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
+		if (ISDEBUG) { std::cout << instruction << "\t" << "#" << (int)result; }
+		//std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
 	}
 
-	uint8_t ldaAbsolute() {
-		uint8_t result = mMemory[fetch() + (fetch() << 8)];
-		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
+	uint8_t loadAbsolute(std::string instruction) {
+		uint16_t addr = fetch16();
+		uint8_t result = mMemory[addr];
+		if (ISDEBUG) { std::cout << instruction << "\t" << (int)addr; }
+		//std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
 	}
 
-	uint8_t ldaIndirectY() {
+	uint8_t loadIndirectY(std::string instruction) {
 		uint8_t lookupAddress = fetch();
-		std::cout << "Lookup address: " << std::hex << static_cast<int>(lookupAddress) << ", y: " << std::hex << static_cast<int>(mRegisterY) << std::endl;
+		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << (int)lookupAddress << "),y"; }
+		//std::cout << "Lookup address: " << std::hex << static_cast<int>(lookupAddress) << ", y: " << std::hex << static_cast<int>(mRegisterY) << std::endl;
 
 		uint16_t address = (mMemory[lookupAddress] + (mMemory[lookupAddress + 1] << 8)) + mRegisterY;
-		std::cout << "Address: " << std::hex << static_cast<int>(address) << std::endl;
+		//std::cout << "Address: " << std::hex << static_cast<int>(address) << std::endl;
 
 		uint8_t result = mMemory[address];
-		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
+		//std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
 	}
 
-	uint8_t ldaZeroPageX() {
-		uint8_t	address = mRegisterX + fetch();
+	uint8_t loadZeroPageX(std::string instruction) {
+		uint8_t base = fetch();
+		uint8_t	address = mRegisterX + base;
 		uint8_t result = mMemory[address];
-		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A, address: " << std::hex << static_cast<int>(address) << std::endl;
+		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",x"; }
+		//std::cout << "LDA " << std::hex << static_cast<int>(result) << " into A, address: " << std::hex << static_cast<int>(address) << std::endl;
 		return result;
 	}
 
-	uint8_t ldaAbsoluteY() {
-		uint8_t result = mMemory[(fetch() + (fetch() << 8)) + mRegisterY];
-		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
+	uint8_t loadZeroPageY(std::string instruction) {
+		uint8_t base = fetch();
+		uint8_t	address = mRegisterY + base;
+		uint8_t result = mMemory[address];
+		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",y"; }
+		//std::cout << "LDA " << std::hex << static_cast<int>(result) << " into A, address: " << std::hex << static_cast<int>(address) << std::endl;
 		return result;
 	}
 
-	uint8_t ldaAbsoluteX() {
-		uint8_t result = mMemory[(fetch() + (fetch() << 8)) + mRegisterX];
-		std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
+	uint8_t loadAbsoluteY(std::string instruction) {
+		uint16_t base = fetch16();
+		uint8_t result = mMemory[base + mRegisterY];
+		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",y"; }
+		//std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
+	}
+
+	uint8_t loadAbsoluteX(std::string instruction) {
+		uint16_t base = fetch16();
+		uint8_t result = mMemory[base + mRegisterX];
+		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",x"; }
+		//std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
+		return result;
+	}
+
+
+
+	//save instructions 
+
+	void saveIndirectY(std::string instruction, uint8_t value) {
+		uint8_t lookupAddress = fetch();
+		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << (int)lookupAddress << "),y"; }
+
+		uint16_t address = (mMemory[lookupAddress] + (mMemory[lookupAddress + 1] << 8)) + mRegisterY;
+
+		mMemory[address] = value;
+	}
+
+	void saveIndirectX(std::string instruction, uint8_t value) {
+		uint8_t lookupAddress = fetch();
+
+		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << (int)lookupAddress << ",x)"; }
+		lookupAddress += mRegisterX;
+		uint16_t address = mMemory[lookupAddress] + (mMemory[lookupAddress + 1] << 8);
+		mMemory[address] = value;
+	}
+
+	void saveZeroPage(std::string instruction, uint8_t value) {
+		uint8_t addr = fetch();
+		mMemory[addr] = value;
+		if (ISDEBUG) { std::cout << instruction << "\t" << (int)addr; }
+	}
+
+	void saveAbsolute(std::string instruction, uint8_t value) {
+		uint16_t addr = fetch16();
+		mMemory[addr] = value;
+		if (ISDEBUG) { std::cout << instruction << "\t" << (int)addr; }
+	}
+
+	void saveZeroPageX(std::string instruction, uint8_t value) {
+		uint8_t base = fetch();
+		uint8_t	address = mRegisterX + base;
+		mMemory[address] = value;
+		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",x"; }
+	}
+
+	void saveZeroPageY(std::string instruction, uint8_t value) {
+		uint8_t base = fetch();
+		uint8_t	address = mRegisterY + base;
+		mMemory[address] = value;
+		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",y"; }
+	}
+
+	void saveAbsoluteY(std::string instruction, uint8_t value) {
+		uint16_t base = fetch16();
+		mMemory[base + mRegisterY] = value;
+		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",y"; }
+	}
+
+	void saveAbsoluteX(std::string instruction, uint8_t value) {
+		uint16_t base = fetch16();
+		mMemory[base + mRegisterX] = value;
+		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",x"; }
 	}
 
 	void setZeroAndNegativeFlags(uint8_t value) {
@@ -610,6 +953,7 @@ int main() {
 		0xA1, 0xF0,
 		0xC8,
 		0xB1, 0xB0,
+		0xE0, 0x09,
 		0x6C, 0x20, 0x01
 	};
 
