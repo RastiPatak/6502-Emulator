@@ -3,8 +3,12 @@
 
 enum OpCode {
 	BRK = 0,
+
 	JMPAbs = 0x4C,
+
 	JMPInd = 0x6C,
+
+	NOP = 0xEA,
 
 	//Load Instructions
 
@@ -50,37 +54,59 @@ enum OpCode {
 	//increment, decrement instructions
 
 	INY = 0xC8,
+
 	INX = 0xE8,
+
 	DEX = 0xCA, // Decrement X by 1
+
 	DEY = 0x88, // Decrement Y by 1
 
 	//flag instructions
 
 	CLC = 0x18, //Clear carry
+
 	CLD = 0xD8, //Clear Decimal Mode
+
 	CLI = 0x58, //Clear Interrupt Disable Bit
+
 	CLV = 0xB8, //Clear Overflow flag
 
-	NOP = 0xEA,
+	SEC = 0x38, //Set carry flag
+
+	SEI = 0x78, //Set Interruption flag
+
+	SED = 0xF8, //Set Decimal Flag
 
 	//Transfer instructions
 
 	TAX = 0xAA, //Transfer Accumulator to X
+
 	TAY = 0xA8, //Transfer Accumulator to Y
+
 	TSX = 0xBA, //Transfer Stack Pointer to X
+
 	TXA = 0x8A, //Transfer X to Accumulator
+
 	TXS = 0x9A, //Transfer X to Stack Pointer
+
 	TYA = 0x98, // Transfer Y to Accumulator
 
 	//Branch instructions
 
 	BCC = 0x90, //Branch on Carry Clear
+
 	BCS = 0xB0, //Branch on Carry Set
+
 	BEQ = 0xF0, //Branch on Result Zero
+
 	BMI = 0x30,  //Branch on result minus
+
 	BNE = 0xD0,  //Branch on result non zero
-	BPL = 0x10,  //Branch on result plus NONE OF BRANCHES IMPLEMENTED YET
+
+	BPL = 0x10,  //Branch on result plus
+
 	BVC = 0x50,
+
 	BVS = 0x70,
 
 	//Compare instructions
@@ -340,6 +366,18 @@ private:
 		case CLV:
 			if (ISDEBUG) { std::cout << "CLV" << "\t"; }
 			V = 0;
+			break;
+		case SEC:
+			if (ISDEBUG) { std::cout << "SEC" << "\t"; }
+			C = 1;
+			break;
+		case SEI:
+			if (ISDEBUG) { std::cout << "SEI" << "\t"; }
+			I = 1;
+			break;
+		case SED:
+			if (ISDEBUG) { std::cout << "SED" << "\t"; }
+			D = 1;
 			break;
 
 			//TRANSFER OPERATIONS
