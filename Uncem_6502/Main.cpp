@@ -3,11 +3,8 @@
 
 enum OpCode {
 	BRK = 0,
-
 	JMPAbs = 0x4C,
-
 	JMPInd = 0x6C,
-
 	NOP = 0xEA,
 
 	//Load Instructions
@@ -54,59 +51,38 @@ enum OpCode {
 	//increment, decrement instructions
 
 	INY = 0xC8,
-
 	INX = 0xE8,
-
 	DEX = 0xCA, // Decrement X by 1
-
 	DEY = 0x88, // Decrement Y by 1
 
 	//flag instructions
 
 	CLC = 0x18, //Clear carry
-
 	CLD = 0xD8, //Clear Decimal Mode
-
 	CLI = 0x58, //Clear Interrupt Disable Bit
-
 	CLV = 0xB8, //Clear Overflow flag
-
 	SEC = 0x38, //Set carry flag
-
 	SEI = 0x78, //Set Interruption flag
-
 	SED = 0xF8, //Set Decimal Flag
 
 	//Transfer instructions
 
 	TAX = 0xAA, //Transfer Accumulator to X
-
 	TAY = 0xA8, //Transfer Accumulator to Y
-
 	TSX = 0xBA, //Transfer Stack Pointer to X
-
 	TXA = 0x8A, //Transfer X to Accumulator
-
 	TXS = 0x9A, //Transfer X to Stack Pointer
-
 	TYA = 0x98, // Transfer Y to Accumulator
 
 	//Branch instructions
 
 	BCC = 0x90, //Branch on Carry Clear
-
 	BCS = 0xB0, //Branch on Carry Set
-
 	BEQ = 0xF0, //Branch on Result Zero
-
 	BMI = 0x30,  //Branch on result minus
-
 	BNE = 0xD0,  //Branch on result non zero
-
 	BPL = 0x10,  //Branch on result plus
-
 	BVC = 0x50,
-
 	BVS = 0x70,
 
 	//Compare instructions
@@ -658,7 +634,7 @@ private:
 	void compareAbsolute(std::string instruction, uint8_t val)
 	{
 		uint16_t addr = fetch16();
-		uint8_t value = mMemory[fetch16()];
+		uint8_t value = mMemory[addr];
 		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
 		compareBase(val, value);
 	}
@@ -674,23 +650,23 @@ private:
 	void compareZeroPageX(std::string instruction, uint8_t val)
 	{
 		uint8_t addr = fetch();
-		uint8_t value = mMemory[addr];
+		uint8_t value = mMemory[addr + mRegisterX];
 		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
 		compareBase(val, value);
 	}
 
 	void compareAbsoluteX(std::string instruction, uint8_t val)
 	{
-		uint16_t addr = fetch16() + mRegisterX;
-		uint8_t value = mMemory[fetch16()];
+		uint16_t addr = fetch16();
+		uint8_t value = mMemory[addr + mRegisterX];
 		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
 		compareBase(val, value);
 	}
 
 	void compareAbsoluteY(std::string instruction, uint8_t val)
 	{
-		uint16_t addr = fetch16() + mRegisterY;
-		uint8_t value = mMemory[fetch16()];
+		uint16_t addr = fetch16();
+		uint8_t value = mMemory[addr + mRegisterY];
 		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
 		compareBase(val, value);
 	}
@@ -699,8 +675,8 @@ private:
 	{
 		uint8_t lookupaddress = fetch();
 
-		uint16_t addr = (mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY;
-		uint8_t value = mMemory[addr];
+		//uint16_t addr = (mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY;
+		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
 		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
 		compareBase(val, value);
 	}
@@ -709,8 +685,8 @@ private:
 	{
 		uint8_t lookupaddress = fetch();
 
-		uint16_t addr = (mMemory[lookupaddress + mRegisterX] + mMemory[lookupaddress + mRegisterX + 1] << 8);
-		uint8_t value = mMemory[addr];
+		//uint16_t addr = (mMemory[lookupaddress + mRegisterX] + mMemory[lookupaddress + mRegisterX + 1] << 8);
+		uint8_t value = mMemory[mMemory[lookupaddress + mRegisterX] + mMemory[lookupaddress + mRegisterX + 1] << 8];
 		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
 		compareBase(val, value);
 	}
