@@ -467,6 +467,144 @@ private:
 		}
 	}
 
+	uint8_t rotateright(uint8_t value)
+	{
+		uint8_t resultingvalue = value >> 1 + (C ? 0x80 : 0); //I rotate the entered value by 1 position right, replacing the left-most bit of the ROTATED VALUE with carry (either 1 or 0)
+		C = value & 0x1;                                      //I store the bit that disappears due to shifting of the number in the carry flag
+		setZeroAndNegativeFlags(resultingvalue);              //I also set the correct flags if the resulting value after shifting appears to be zero or negative
+		return resultingvalue;                                //I return the value 
+	}
+
+	uint8_t rotateleft(uint8_t value)
+	{
+		uint8_t resultingvalue = value << 1 + (C ? 1 : 0);    //I rotate the entered value 1 position left, replacing the right-most bit of the ROTATED VALUE with value of carry 
+		C = value & 0x80;                                     //I store the left-most bit that disappears due to shifting into carry flag
+		setZeroAndNegativeFlags(resultingvalue);              //I check if the value is negative or zero
+		return resultingvalue;                                //I return the value
+	}
+
+	void OutForComAndMode(std::string instruction, std::string addrmode, uint16_t addr)
+	{
+		// addrmode should be made to enum, if you wish. This version is already working one, but i didnt implement it widely
+		if (ISDEBUG)
+		{
+			if (addrmode == "IMD")
+			{
+				std::cout << instruction << "\t" << "#" << (int)addr;
+			}
+			else if (addrmode == "ZPG")
+			{
+				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr;
+			}
+			else if (addrmode == "ZPX")
+			{
+				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x";
+			}
+			else if (addrmode == "ZPY")
+			{
+				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",y";
+			}
+			else if (addrmode == "ABS")
+			{
+				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr;
+			}
+			else if (addrmode == "ABX")
+			{
+				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x";
+			}
+			else if (addrmode == "ABY")
+			{
+				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y";
+			}
+			else if (addrmode == "INX")
+			{
+				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x)";
+			}
+			else if (addrmode == "INY")
+			{
+				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << "),y";
+			}
+			else
+			{
+				std::cout << instruction << "\t";
+			}
+		}
+	}
+
+
+
+	void rotateLeftZeroPage()
+	{
+		uint8_t addr = fetch();                               // ADDR WILL BE NEEDED FOR OUTPUT, NO QUESTIONS ASKED, IT WONT WORK OTHER WAY
+		mMemory[addr] = rotateleft(mMemory[addr]);
+		//OutForComAndMode("instructionname", "addressingmode", "addr");
+		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+	}
+
+	void rotateLeftAccumulator()
+	{
+		mAccumulator = rotateleft(mAccumulator);
+		if (ISDEBUG) { std::cout << "ROL" << "\t" << "A"; }
+	}
+
+	void rotateLeftZeroPageX()
+	{
+		uint8_t addr = fetch();  
+		mMemory[addr + mRegisterX] = rotateleft(mMemory[addr + mRegisterX]);
+		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
+	}
+
+	void rotateLeftAbsoluteX()
+	{
+		uint16_t addr = fetch16();
+		mMemory[addr + mRegisterX] = rotateleft(mMemory[addr + mRegisterX]);
+		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
+	}
+
+	void rotateLeftAbsolute()
+	{
+		uint8_t addr = fetch16();
+		mMemory[addr] = rotateleft(mMemory[addr]);
+		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+	}
+
+	void rotateRightZeroPage()
+	{
+		uint8_t addr = fetch();                               // ADDR WILL BE NEEDED FOR OUTPUT, NO QUESTIONS ASKED, IT WONT WORK OTHER WAY
+		mMemory[addr] = rotateright(mMemory[addr]);
+		//OutForComAndMode("instructionname", "addressingmode", "addr");
+		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+	}
+
+	void rotateRightAccumulator()
+	{
+		mAccumulator = rotateright(mAccumulator);
+		if (ISDEBUG) { std::cout << "ROL" << "\t" << "A"; }
+	}
+
+	void rotateRightZeroPageX()
+	{
+		uint8_t addr = fetch();
+		mMemory[addr + mRegisterX] = rotateright(mMemory[addr + mRegisterX]);
+		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
+	}
+
+	void rotateRightAbsoluteX()
+	{
+		uint16_t addr = fetch16();
+		mMemory[addr + mRegisterX] = rotateright(mMemory[addr + mRegisterX]);
+		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
+	}
+
+	void rotateRightAbsolute()
+	{
+		uint8_t addr = fetch16();
+		mMemory[addr] = rotateright(mMemory[addr]);
+		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+	}
+
+
+
 	void transferAccToX()
 	{
 		if (ISDEBUG) { std::cout << "TAX" << "\t"; }
@@ -659,7 +797,7 @@ private:
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterX];
-		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
+		if (ISDEBUG) {std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x";}
 		compareBase(val, value);
 	}
 
@@ -667,7 +805,7 @@ private:
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterY];
-		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
+		if (ISDEBUG) {std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y";}
 		compareBase(val, value);
 	}
 
@@ -677,7 +815,7 @@ private:
 
 		//uint16_t addr = (mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY;
 		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
-		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
+		if (ISDEBUG) {std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y";}
 		compareBase(val, value);
 	}
 
@@ -687,7 +825,7 @@ private:
 
 		//uint16_t addr = (mMemory[lookupaddress + mRegisterX] + mMemory[lookupaddress + mRegisterX + 1] << 8);
 		uint8_t value = mMemory[mMemory[lookupaddress + mRegisterX] + mMemory[lookupaddress + mRegisterX + 1] << 8];
-		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
+		if (ISDEBUG) {std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)";}
 		compareBase(val, value);
 	}
 
