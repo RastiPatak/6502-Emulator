@@ -594,48 +594,37 @@ private:
 		// addrmode should be made to enum, if you wish. This version is already working one, but i didnt implement it widely
 		if (ISDEBUG)
 		{
-			if (mode == IMD)
-			{
+			switch (mode) {
+			case IMD:
 				std::cout << instruction << "\t" << "#" << (int)addr;
-			}
-			else if (mode == ZPG)
-			{
+			case ZPG:
 				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr;
-			}
-			else if (mode == ZPX)
-			{
+
+			case ZPX:
 				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x";
-			}
-			else if (mode == ZPY)
-			{
+
+			case ZPY:
 				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",y";
-			}
-			else if (mode == ABS)
-			{
+
+			case ABS:
 				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr;
-			}
-			else if (mode == ABX)
-			{
+
+			case ABX:
 				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x";
-			}
-			else if (mode == ABY)
-			{
+
+			case ABY:
 				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y";
-			}
-			else if (mode == INX)
-			{
+
+			case INX:
 				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x)";
-			}
-			else if (mode == INY)
-			{
+
+			case INY:
 				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << "),y";
-			}
-			else if (mode == A)
-			{
+
+			case A:
 				std::cout << instruction << "\t" << "A";
-			}
-			else
-			{
+
+			default:
 				std::cout << instruction << "\t";
 			}
 		}
@@ -908,7 +897,7 @@ private:
 		if (Z == 0)
 		{
 			mProgramCounter += fetchedByte;
-			//branchDebugPrint();
+			branchDebugPrint("BNE", fetchedByte);
 		}
 	}
 
@@ -917,7 +906,7 @@ private:
 		if (C == 1)
 		{
 			mProgramCounter += fetchedByte;
-			//branchDebugPrint();
+			branchDebugPrint("BCS", fetchedByte);
 		}
 	}
 
@@ -926,7 +915,7 @@ private:
 		if (C == 0)
 		{
 			mProgramCounter += fetchedByte;
-			//ranchDebugPrint();
+			branchDebugPrint("BCC", fetchedByte);
 		}
 	}
 
@@ -935,7 +924,7 @@ private:
 		if (Z == 1)
 		{
 			mProgramCounter += fetchedByte;
-			//branchDebugPrint("BEQ", fetchedByte);
+			branchDebugPrint("BEQ", fetchedByte);
 		}
 	}
 
@@ -944,7 +933,7 @@ private:
 		if (N == 1)
 		{
 			mProgramCounter += fetchedByte;
-			//branchDebugPrint("BMI", fetchedByte);
+			branchDebugPrint("BMI", fetchedByte);
 		}
 	}
 
@@ -953,7 +942,7 @@ private:
 		if (N == 0)
 		{
 			mProgramCounter += fetchedByte;
-			//branchDebugPrint("BPL", fetchedByte);
+			branchDebugPrint("BPL", fetchedByte);
 		}
 	}
 
@@ -962,7 +951,7 @@ private:
 		if (V == 0)
 		{
 			mProgramCounter += fetchedByte;
-			//branchDebugPrint("BVS", fetchedByte);
+			branchDebugPrint("BVC", fetchedByte);
 		}
 	}
 
@@ -971,7 +960,7 @@ private:
 		if (V == 1)
 		{
 			mProgramCounter += fetchedByte;
-			//branchDebugPrint("BVS", fetchedByte);
+			branchDebugPrint("BVS", fetchedByte);
 		}
 	}
 
@@ -982,13 +971,13 @@ private:
 		return offset;
 	}
 
-	/*void branchDebugPrint(std::string instruction, int8_t fetchedByte) {
-		
+	void branchDebugPrint(std::string instruction, int8_t fetchedByte) 
+	{
 		if (ISDEBUG)
 		{
-			std::cout << "\t" << (int)fetchedByte;
+			std::cout << "\t" << instruction << " : "  << (static_cast<int>(fetchedByte) & 0xFF) << std::endl;
 		}
-	}*/
+	}
 
 	uint16_t jumpAbsolute() {
 		//std::cout << "JMP (absolute) started, PC: " << mProgramCounter << std::endl;
