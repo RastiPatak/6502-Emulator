@@ -74,6 +74,20 @@ enum OpCode {
 	TXS = 0x9A, //Transfer X to Stack Pointer
 	TYA = 0x98, // Transfer Y to Accumulator
 
+	// Logical and arithmetical instructions
+
+	ROLAcc = 0x2A, // Rotate left
+	ROLZeroP = 0x26,
+	ROLZeroPX =0x36,
+	ROLAbs =   0x2E,
+	ROLAbsX =  0x3E,
+
+	RORAcc = 0x6A, // Rotate right
+	RORZeroP = 0x66,
+	RORZeroPX =0x76,
+	RORAbs =   0x6E,
+	RORAbsX =  0x7E,
+
 	//Branch instructions
 
 	BCC = 0x90, //Branch on Carry Clear
@@ -103,6 +117,21 @@ enum OpCode {
 	CPYImmediate = 0xC0, //Compare Y With Memory
 	CPYZeroP = 0xC4,
 	CPYAbs = 0xCC
+};
+
+enum addressMode // Prototype enum for addressing modes, used for unified output function.
+{
+	IMD = 1,
+	ZPG = 2,
+	ZPX = 3,
+	ZPY = 4,
+	ABS = 5,
+	ABX = 6,
+	ABY = 7,
+	INX = 8,
+	INY = 9,
+	NON = 10,
+	A = 11 //Accumulator as address mode, used in few commands
 };
 
 class MOS6502 {
@@ -356,6 +385,30 @@ private:
 			D = 1;
 			break;
 
+			//LOGICAL AND ARITHMETICAL OPERATIONS
+
+		case RORAcc:
+			rotateRightAccumulator();
+		case RORZeroP:
+			rotateRightAccumulator();
+		case RORZeroPX:
+			rotateRightAccumulator();
+		case RORAbs:
+			rotateRightAccumulator();
+		case RORAbsX:
+			rotateRightAccumulator();
+
+		case ROLAcc:
+			rotateLeftAccumulator();
+		case ROLZeroP:
+			rotateLeftAccumulator();
+		case ROLZeroPX:
+			rotateLeftAccumulator();
+		case ROLAbs:
+			rotateLeftAccumulator();
+		case ROLAbsX:
+			rotateLeftAccumulator();
+
 			//TRANSFER OPERATIONS
 
 		case TAX:
@@ -524,6 +577,63 @@ private:
 			{
 				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << "),y";
 			}
+			else if (addrmode == "A")
+			{
+				std::cout << instruction << "\t" << "A";
+			}
+			else
+			{
+				std::cout << instruction << "\t";
+			}
+		}
+	}
+
+	//VERSION OF UNIFIED OUTPUT FUNCTION WITH ENUMS USED
+	void OutForComAndModeENUM(std::string instruction, addressMode mode, uint16_t addr)
+	{
+		// addrmode should be made to enum, if you wish. This version is already working one, but i didnt implement it widely
+		if (ISDEBUG)
+		{
+			if (mode == IMD)
+			{
+				std::cout << instruction << "\t" << "#" << (int)addr;
+			}
+			else if (mode == ZPG)
+			{
+				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr;
+			}
+			else if (mode == ZPX)
+			{
+				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x";
+			}
+			else if (mode == ZPY)
+			{
+				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",y";
+			}
+			else if (mode == ABS)
+			{
+				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr;
+			}
+			else if (mode == ABX)
+			{
+				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x";
+			}
+			else if (mode == ABY)
+			{
+				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y";
+			}
+			else if (mode == INX)
+			{
+				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x)";
+			}
+			else if (mode == INY)
+			{
+				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << "),y";
+			}
+			else if (mode == A)
+			{
+				std::cout << instruction << "\t" << "A";
+			}
 			else
 			{
 				std::cout << instruction << "\t";
@@ -538,69 +648,77 @@ private:
 		uint8_t addr = fetch();                               // ADDR WILL BE NEEDED FOR OUTPUT, NO QUESTIONS ASKED, IT WONT WORK OTHER WAY
 		mMemory[addr] = rotateleft(mMemory[addr]);
 		//OutForComAndMode("instructionname", "addressingmode", "addr");
-		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+		OutForComAndModeENUM("ROL", ZPG, addr);
+		//if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
 	}
 
 	void rotateLeftAccumulator()
 	{
 		mAccumulator = rotateleft(mAccumulator);
-		if (ISDEBUG) { std::cout << "ROL" << "\t" << "A"; }
+		OutForComAndModeENUM("ROL", A, 0);
+		//if (ISDEBUG) { std::cout << "ROL" << "\t" << "A"; }
 	}
 
 	void rotateLeftZeroPageX()
 	{
 		uint8_t addr = fetch();  
 		mMemory[addr + mRegisterX] = rotateleft(mMemory[addr + mRegisterX]);
-		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
+		OutForComAndModeENUM("ROL", ZPG, addr);
+		//if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
 	}
 
 	void rotateLeftAbsoluteX()
 	{
 		uint16_t addr = fetch16();
 		mMemory[addr + mRegisterX] = rotateleft(mMemory[addr + mRegisterX]);
-		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
+		OutForComAndModeENUM("ROL", ABX, addr);
+		//if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
 	}
 
 	void rotateLeftAbsolute()
 	{
 		uint8_t addr = fetch16();
 		mMemory[addr] = rotateleft(mMemory[addr]);
-		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+		OutForComAndModeENUM("ROL", ABS, addr);
+		//if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
 	}
 
 	void rotateRightZeroPage()
 	{
-		uint8_t addr = fetch();                               // ADDR WILL BE NEEDED FOR OUTPUT, NO QUESTIONS ASKED, IT WONT WORK OTHER WAY
+		uint8_t addr = fetch();                              
 		mMemory[addr] = rotateright(mMemory[addr]);
-		//OutForComAndMode("instructionname", "addressingmode", "addr");
-		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+		OutForComAndModeENUM("ROR", ZPG, addr);
+		//if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
 	}
 
 	void rotateRightAccumulator()
 	{
 		mAccumulator = rotateright(mAccumulator);
-		if (ISDEBUG) { std::cout << "ROL" << "\t" << "A"; }
+		OutForComAndModeENUM("ROR", A, 0);
 	}
 
 	void rotateRightZeroPageX()
 	{
 		uint8_t addr = fetch();
 		mMemory[addr + mRegisterX] = rotateright(mMemory[addr + mRegisterX]);
-		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
+		OutForComAndModeENUM("ROR", ZPX, addr);
+		//if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
 	}
 
 	void rotateRightAbsoluteX()
 	{
 		uint16_t addr = fetch16();
 		mMemory[addr + mRegisterX] = rotateright(mMemory[addr + mRegisterX]);
-		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
+		OutForComAndModeENUM("ROR", ABX, addr);
+		//if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
 	}
 
 	void rotateRightAbsolute()
 	{
 		uint8_t addr = fetch16();
 		mMemory[addr] = rotateright(mMemory[addr]);
-		if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+		OutForComAndModeENUM("ROR", ABS, addr);
+		//if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
 	}
 
 
@@ -709,52 +827,6 @@ private:
 		V = tempVSave;
 	}
 
-	/*void compareXImmediate()
-	{
-		uint8_t value = fetch();
-		if (ISDEBUG) { std::cout << "CPX" << "\t" << "#" << (int)value; }
-		compareBase(mRegisterX, value);
-	}
-
-	void compareXAbsolute()
-	{
-		uint16_t addr = fetch16();
-		uint8_t value = mMemory[addr];
-		if (ISDEBUG) { std::cout << "CPX" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
-		compareBase(mRegisterX, value);
-	}
-
-	void compareXZeroPage()
-	{
-		uint8_t addr = fetch();
-		uint8_t value = mMemory[addr];
-		if (ISDEBUG) { std::cout << "CPX" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
-		compareBase(mRegisterX, value);
-	}
-
-	void compareYImmediate()
-	{
-		uint8_t value = fetch();
-		if (ISDEBUG) { std::cout << "CPY" << "\t" << "#" << (int)value; }
-		compareBase(mRegisterY, value);
-	}
-
-	void compareYAbsolute()
-	{
-		uint16_t addr = fetch16();
-		uint8_t value = mMemory[fetch16()];
-		if (ISDEBUG) { std::cout << "CPY" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
-		compareBase(mRegisterY, value);
-	}
-
-	void compareYZeroPage()
-	{
-		uint8_t addr = fetch();
-		uint8_t value = mMemory[addr];
-		if (ISDEBUG) { std::cout << "CPY" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
-		compareBase(mRegisterY, value);
-	}*/
-
 
 
 	//"VAL" IN ALL COMPARE OPERATIONS IS VALUE OF THE CHOSEN REGISTER AND IS NOT THE VALUE IT IS BEING COMPARED WITH.
@@ -821,10 +893,10 @@ private:
 
 	void compareIndX(std::string instruction, uint8_t val)
 	{
-		uint8_t lookupaddress = fetch();
+		uint8_t lookupaddress = fetch() + mRegisterX;
 
 		//uint16_t addr = (mMemory[lookupaddress + mRegisterX] + mMemory[lookupaddress + mRegisterX + 1] << 8);
-		uint8_t value = mMemory[mMemory[lookupaddress + mRegisterX] + mMemory[lookupaddress + mRegisterX + 1] << 8];
+		uint8_t value = mMemory[mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8];
 		if (ISDEBUG) {std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)";}
 		compareBase(val, value);
 	}
@@ -836,7 +908,7 @@ private:
 		if (Z == 0)
 		{
 			mProgramCounter += fetchedByte;
-			branchDebugPrint("BNE", fetchedByte);
+			//branchDebugPrint();
 		}
 	}
 
@@ -845,7 +917,7 @@ private:
 		if (C == 1)
 		{
 			mProgramCounter += fetchedByte;
-			branchDebugPrint("BCS", fetchedByte);
+			//branchDebugPrint();
 		}
 	}
 
@@ -854,7 +926,7 @@ private:
 		if (C == 0)
 		{
 			mProgramCounter += fetchedByte;
-			branchDebugPrint("BCC", fetchedByte);
+			//ranchDebugPrint();
 		}
 	}
 
@@ -863,7 +935,7 @@ private:
 		if (Z == 1)
 		{
 			mProgramCounter += fetchedByte;
-			branchDebugPrint("BEQ", fetchedByte);
+			//branchDebugPrint("BEQ", fetchedByte);
 		}
 	}
 
@@ -872,7 +944,7 @@ private:
 		if (N == 1)
 		{
 			mProgramCounter += fetchedByte;
-			branchDebugPrint("BMI", fetchedByte);
+			//branchDebugPrint("BMI", fetchedByte);
 		}
 	}
 
@@ -881,7 +953,7 @@ private:
 		if (N == 0)
 		{
 			mProgramCounter += fetchedByte;
-			branchDebugPrint("BPL", fetchedByte);
+			//branchDebugPrint("BPL", fetchedByte);
 		}
 	}
 
@@ -890,7 +962,7 @@ private:
 		if (V == 0)
 		{
 			mProgramCounter += fetchedByte;
-			branchDebugPrint("BVC", fetchedByte);
+			//branchDebugPrint("BVS", fetchedByte);
 		}
 	}
 
@@ -899,23 +971,24 @@ private:
 		if (V == 1)
 		{
 			mProgramCounter += fetchedByte;
-			branchDebugPrint("BVS", fetchedByte);
+			//branchDebugPrint("BVS", fetchedByte);
 		}
 	}
 
 	int8_t branchBase(char const* instruction) {
 		if (ISDEBUG) { std::cout << instruction; }
 		int8_t offset = fetch();
-		if (ISDEBUG) { std::cout << "\t" << (int)offset; }
+		if (ISDEBUG) { std::cout << "\t" << offset; }
 		return offset;
 	}
 
-	void branchDebugPrint(char const* instruction, int8_t fetchedByte) {
+	/*void branchDebugPrint(std::string instruction, int8_t fetchedByte) {
+		
 		if (ISDEBUG)
 		{
-			std::cout << ";" << "->";
+			std::cout << "\t" << (int)fetchedByte;
 		}
-	}
+	}*/
 
 	uint16_t jumpAbsolute() {
 		//std::cout << "JMP (absolute) started, PC: " << mProgramCounter << std::endl;
@@ -946,6 +1019,7 @@ private:
 		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << (int)lookupAddress << ",x)"; }
 
 		lookupAddress += mRegisterX;
+		//if (ISDEBUG) { std::cout << instruction << "\t" << "(" << (int)lookupAddress << ",x)"; }
 		//std::cout << "Lookup address: " << std::hex << static_cast<int>(lookupAddress) << ", x being: " << std::hex << static_cast<int>(mRegisterX) << std::endl;
 
 		uint16_t address = mMemory[lookupAddress] + (mMemory[lookupAddress + 1] << 8);
