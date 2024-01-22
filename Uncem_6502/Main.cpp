@@ -5,6 +5,7 @@ enum OpCode {
 	BRK = 0,
 	JMPAbs = 0x4C,
 	JMPInd = 0x6C,
+	JSRAbs = 0x20,
 	NOP = 0xEA,
 	PHP = 0x08,
 	PLP = 0x28,
@@ -56,103 +57,115 @@ enum OpCode {
 
 	//increment, decrement instructions
 
-	INY = 0xC8,
-	INX = 0xE8,
-	DEX = 0xCA, // Decrement X by 1
-	DEY = 0x88, // Decrement Y by 1
+INY = 0xC8,
+INX = 0xE8,
+DEX = 0xCA, // Decrement X by 1
+DEY = 0x88, // Decrement Y by 1
 
-	//flag instructions
+//flag instructions
 
-	CLC = 0x18, //Clear carry
-	CLD = 0xD8, //Clear Decimal Mode
-	CLI = 0x58, //Clear Interrupt Disable Bit
-	CLV = 0xB8, //Clear Overflow flag
-	SEC = 0x38, //Set carry flag
-	SEI = 0x78, //Set Interruption flag
-	SED = 0xF8, //Set Decimal Flag
+CLC = 0x18, //Clear carry
+CLD = 0xD8, //Clear Decimal Mode
+CLI = 0x58, //Clear Interrupt Disable Bit
+CLV = 0xB8, //Clear Overflow flag
+SEC = 0x38, //Set carry flag
+SEI = 0x78, //Set Interruption flag
+SED = 0xF8, //Set Decimal Flag
 
-	//Transfer instructions
+//Transfer instructions
 
-	TAX = 0xAA, //Transfer Accumulator to X
-	TAY = 0xA8, //Transfer Accumulator to Y
-	TSX = 0xBA, //Transfer Stack Pointer to X
-	TXA = 0x8A, //Transfer X to Accumulator
-	TXS = 0x9A, //Transfer X to Stack Pointer
-	TYA = 0x98, // Transfer Y to Accumulator
+TAX = 0xAA, //Transfer Accumulator to X
+TAY = 0xA8, //Transfer Accumulator to Y
+TSX = 0xBA, //Transfer Stack Pointer to X
+TXA = 0x8A, //Transfer X to Accumulator
+TXS = 0x9A, //Transfer X to Stack Pointer
+TYA = 0x98, // Transfer Y to Accumulator
 
-	// Logical and arithmetical instructions
+// Logical and arithmetical instructions
 
-	ROLAcc = 0x2A, // Rotate left
-	ROLZeroP = 0x26,
-	ROLZeroPX =0x36,
-	ROLAbs =   0x2E,
-	ROLAbsX =  0x3E,
+ROLAcc = 0x2A, // Rotate left
+ROLZeroP = 0x26,
+ROLZeroPX = 0x36,
+ROLAbs = 0x2E,
+ROLAbsX = 0x3E,
 
-	RORAcc = 0x6A, // Rotate right
-	RORZeroP = 0x66,
-	RORZeroPX =0x76,
-	RORAbs =   0x6E,
-	RORAbsX =  0x7E,
+RORAcc = 0x6A, // Rotate right
+RORZeroP = 0x66,
+RORZeroPX = 0x76,
+RORAbs = 0x6E,
+RORAbsX = 0x7E,
 
-	ASLAcc = 0x0A, //Arithmetic shift left
-	ASLZeroP = 0x06,
-	ASLZeroPX = 0x16,
-	ASLAbs = 0x0E,
-	ASLAbsX = 0x1E,
+ASLAcc = 0x0A, //Arithmetic shift left
+ASLZeroP = 0x06,
+ASLZeroPX = 0x16,
+ASLAbs = 0x0E,
+ASLAbsX = 0x1E,
 
-	LSRAcc = 0x4A, //Logical shift right
-	LSRZeroP = 0x46,
-	LSRZeroPX = 0x56,
-	LSRAbs = 0x4E,
-	LSRAbsX = 0x5E,
+LSRAcc = 0x4A, //Logical shift right
+LSRZeroP = 0x46,
+LSRZeroPX = 0x56,
+LSRAbs = 0x4E,
+LSRAbsX = 0x5E,
 
-	ORAImmedeate = 0x09,  //or with memory or accumulator
-	ORAZeroP = 0x05,
-	ORAZeroPX = 0x15,
-	ORAAbs = 0x0D,
-	ORAAbsX = 0x1D,
-	ORAAbsY = 0x19,
-	ORAIndX = 0x01,
-	ORAIndY = 0x11,
+ORAImmediate = 0x09,  //or with memory or accumulator
+ORAZeroP = 0x05,
+ORAZeroPX = 0x15,
+ORAAbs = 0x0D,
+ORAAbsX = 0x1D,
+ORAAbsY = 0x19,
+ORAIndX = 0x01,
+ORAIndY = 0x11,
 
-	ANDImmedeate = 0x29, //and with memory or accumulator
-	ANDZeroP = 0x25,
-	ANDZeroPX = 0x35,
-	ANDAbs = 0x2D,
-	ANDAbsX = 0x3D,
-	ANDAbsY = 0x39,
-	ANDIndX = 0x21,
-	ANDIndY = 0x31,
+EORImmediate = 0x49,  //xor with memory or accumulator
+EORZeroP = 0x45,
+EORZeroPX = 0x55,
+EORAbs = 0x4D,
+EORAbsX = 0x5D,
+EORAbsY = 0x59,
+EORIndX = 0x41,
+EORIndY = 0x51,
 
-	//Branch instructions
+ANDImmediate = 0x29, //and with memory or accumulator
+ANDZeroP = 0x25,
+ANDZeroPX = 0x35,
+ANDAbs = 0x2D,
+ANDAbsX = 0x3D,
+ANDAbsY = 0x39,
+ANDIndX = 0x21,
+ANDIndY = 0x31,
 
-	BCC = 0x90, //Branch on Carry Clear
-	BCS = 0xB0, //Branch on Carry Set
-	BEQ = 0xF0, //Branch on Result Zero
-	BMI = 0x30,  //Branch on result minus
-	BNE = 0xD0,  //Branch on result non zero
-	BPL = 0x10,  //Branch on result plus
-	BVC = 0x50,
-	BVS = 0x70,
+//Branch instructions
 
-	//Compare instructions
+BCC = 0x90, //Branch on Carry Clear
+BCS = 0xB0, //Branch on Carry Set
+BEQ = 0xF0, //Branch on Result Zero
+BMI = 0x30,  //Branch on result minus
+BNE = 0xD0,  //Branch on result non zero
+BPL = 0x10,  //Branch on result plus
+BVC = 0x50,
+BVS = 0x70,
 
-	CMPImmediate = 0xC9,
-	CMPZeroP = 0xC5,
-	CMPZeroPX = 0xD5,
-	CMPAbs = 0xCD,
-	CMPAbsX = 0xDD,
-	CMPAbsY = 0xD9,
-	CMPIndX = 0xC1,
-	CMPIndY = 0xD1,
+//Compare instructions
 
-	CPXImmediate = 0xE0, //Compare X With Memory
-	CPXZeroP = 0xE4,
-	CPXAbs = 0xEC,
+CMPImmediate = 0xC9,
+CMPZeroP = 0xC5,
+CMPZeroPX = 0xD5,
+CMPAbs = 0xCD,
+CMPAbsX = 0xDD,
+CMPAbsY = 0xD9,
+CMPIndX = 0xC1,
+CMPIndY = 0xD1,
 
-	CPYImmediate = 0xC0, //Compare Y With Memory
-	CPYZeroP = 0xC4,
-	CPYAbs = 0xCC
+CPXImmediate = 0xE0, //Compare X With Memory
+CPXZeroP = 0xE4,
+CPXAbs = 0xEC,
+
+CPYImmediate = 0xC0, //Compare Y With Memory
+CPYZeroP = 0xC4,
+CPYAbs = 0xCC,
+
+BITAbs = 0x2C,
+BITZeroP = 0x24,
 };
 
 enum addressMode // Prototype enum for addressing modes, used for unified output function.
@@ -242,6 +255,9 @@ private:
 			break;
 		case JMPInd:
 			mProgramCounter = jumpIndirect();
+			break;
+		case JSRAbs:
+			mProgramCounter = jumpAbsoluteSavingAddress();
 			break;
 
 			//LOAD OPERATIONS
@@ -423,84 +439,146 @@ private:
 
 			//LOGICAL AND ARITHMETICAL OPERATIONS
 
-		case ORAImmedeate:                        //or with memory or accumulator
+		case ORAImmediate:                        //or with memory or accumulator
 			orWithMemoryOrAccImmedeate();
+			break;
 		case ORAZeroP:
 			orWithMemoryOrAccZeroP();
+			break;
 		case ORAZeroPX:
 			orWithMemoryOrAccZeroPX();
+			break;
 		case ORAAbs:
 			orWithMemoryOrAccAbs();
+			break;
 		case ORAAbsX:
 			orWithMemoryOrAccAbsX();
+			break;
 		case ORAAbsY:
 			orWithMemoryOrAccAbsY();
+			break;
 		case ORAIndX:
 			orWithMemoryOrAccIndX();
+			break;
 		case ORAIndY:
 			orWithMemoryOrAccIndY();
+			break;
 
-		case ANDImmedeate:
+		case EORImmediate:                        //or with memory or accumulator
+			orWithMemoryOrAccImmedeate();
+			break;
+		case EORZeroP:
+			orWithMemoryOrAccZeroP();
+			break;
+		case EORZeroPX:
+			orWithMemoryOrAccZeroPX();
+			break;
+		case EORAbs:
+			orWithMemoryOrAccAbs();
+			break;
+		case EORAbsX:
+			orWithMemoryOrAccAbsX();
+			break;
+		case EORAbsY:
+			orWithMemoryOrAccAbsY();
+			break;
+		case EORIndX:
+			orWithMemoryOrAccIndX();
+			break;
+		case EORIndY:
+			orWithMemoryOrAccIndY();
+			break;
+
+
+		case ANDImmediate:
 			andWithMemoryOrAccImmedeate();
+			break;
 		case ANDZeroP:
 			andWithMemoryOrAccZeroP();
+			break;
 		case ANDZeroPX:
 			andWithMemoryOrAccZeroPX();
+			break;
 		case ANDAbs:
 			andWithMemoryOrAccAbs();
+			break;
 		case ANDAbsX:
 			andWithMemoryOrAccAbsX();
+			break;
 		case ANDAbsY:
 			andWithMemoryOrAccAbsY();
+			break;
 		case ANDIndX:
 			andWithMemoryOrAccIndX();
+			break;
 		case ANDIndY:
 			andWithMemoryOrAccIndY();
+			break;
 
 
 		case RORAcc:
 			rotateRightAccumulator();
+			break;
 		case RORZeroP:
 			rotateRightAccumulator();
+			break;
 		case RORZeroPX:
 			rotateRightAccumulator();
+			break;
 		case RORAbs:
 			rotateRightAccumulator();
+			break;
 		case RORAbsX:
 			rotateRightAccumulator();
+			break;
 
 		case ROLAcc:
 			rotateLeftAccumulator();
+			break;
 		case ROLZeroP:
 			rotateLeftAccumulator();
+			break;
 		case ROLZeroPX:
 			rotateLeftAccumulator();
+			break;
 		case ROLAbs:
 			rotateLeftAccumulator();
+			break;
 		case ROLAbsX:
 			rotateLeftAccumulator();
+			break;
 
 		case LSRAcc:
 			shiftLeftAccumulator();
+			break;
 		case LSRZeroP:
 			shiftLeftZeroPage();
+			break;
 		case LSRZeroPX:
 			shiftLeftZeroPageX();
+			break;
 		case LSRAbs:
 			shiftLeftAbsolute();
+			break;
 		case LSRAbsX:
 			shiftLeftAbsoluteX();
+			break;
 
 		case ASLAcc:
 			shiftRightAccumulator();
+			break;
 		case ASLZeroP:
 			shiftRightZeroPage();
+			break;
 		case ASLZeroPX:
 			shiftRightZeroPageX();
+			break;
 		case ASLAbs:
 			shiftRightAbsolute();
+			break;
 		case ASLAbsX:
 			shiftRightAbsoluteX();
+			break;
 
 			//TRANSFER OPERATIONS
 
@@ -597,21 +675,36 @@ private:
 			compareIndY("CMP", mAccumulator);
 			break;
 
+
+		case BITAbs:
+			bitTestAbsolute();
+			break;
+		case BITZeroP:
+			bitTestAbsolute();
+			break;
+
 			//MISCELANNEOUS OPERATIONS
 		case BRK:
-			breakCPU();
+			breakCPU();          //Its Breaking Bad time!
+			break;
 		case RTI: 
 			returnFromInterrupt();
+			break;
 		case RTS:
 			returnFromSubroutine();
+			break;
 		case PLP:
 			pullStatusFromStack();
+			break;
 		case PHA:
 			pushAccToStack();
+			break;
 		case PLA:
 			pullAccFromStack();
+			break;
 		case PHP:
 			pushStatusToStack();
+			break;
 		case NOP:
 			if (ISDEBUG) { std::cout << "NOP" << "\t"; }
 			break;
@@ -839,6 +932,7 @@ private:
 		mStackPointer++;
 		ProgramCounter += (mMemory[mStackPointer] << 8);
 		mProgramCounter = ProgramCounter;
+		if (ISDEBUG) { std::cout << "RTI" << "\t"; }
 	}
 
 	void returnFromSubroutine()
@@ -848,6 +942,7 @@ private:
 		mStackPointer++;
 		ProgramCounter += (mMemory[mStackPointer] << 8);
 		mProgramCounter = ProgramCounter + 1;
+		if (ISDEBUG) { std::cout << "RTS" << "\t"; }
 	}
 
 	void rotateLeftAccumulator()
@@ -1192,6 +1287,79 @@ private:
 		setZeroAndNegativeFlags(res);
 	}
 
+	//XOR WITH MEMORY OR ACCUMULATOR
+
+	void xorWithMemoryOrAccImmedeate()
+	{
+		uint8_t value = fetch();
+		uint8_t res = value ^ mAccumulator;
+		if (ISDEBUG) { std::cout << "EOR" << "\t" << "#" << (int)value; }
+		setZeroAndNegativeFlags(res);
+	}
+
+	void xorWithMemoryOrAccZeroP()
+	{
+		uint8_t addr = fetch();
+		uint8_t value = mMemory[addr];
+		uint8_t res = value ^ mAccumulator;
+		if (ISDEBUG) { std::cout << "EOR" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+		setZeroAndNegativeFlags(res);
+	}
+
+	void xorWithMemoryOrAccZeroPX()
+	{
+		uint8_t addr = fetch();
+		uint8_t value = mMemory[addr + mRegisterX];
+		uint8_t res = value ^ mAccumulator;
+		if (ISDEBUG) { std::cout << "EOR" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
+		setZeroAndNegativeFlags(res);
+	}
+
+	void xorWithMemoryOrAccAbs()
+	{
+		uint16_t addr = fetch16();
+		uint8_t value = mMemory[addr];
+		uint8_t res = value ^ mAccumulator;
+		if (ISDEBUG) { std::cout << "EOR" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
+		setZeroAndNegativeFlags(res);
+	}
+
+	void xorWithMemoryOrAccAbsX()
+	{
+		uint16_t addr = fetch16();
+		uint8_t value = mMemory[addr + mRegisterX];
+		uint8_t res = value ^ mAccumulator;
+		if (ISDEBUG) { std::cout << "EOR" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
+		setZeroAndNegativeFlags(res);
+	}
+
+	void xorWithMemoryOrAccAbsY()
+	{
+		uint16_t addr = fetch16();
+		uint8_t value = mMemory[addr + mRegisterY];
+		uint8_t res = value ^ mAccumulator;
+		if (ISDEBUG) { std::cout << "EOR" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
+		setZeroAndNegativeFlags(res);
+	}
+
+	void xorWithMemoryOrAccIndX()
+	{
+		uint8_t lookupaddress = fetch() + mRegisterX;
+		uint8_t value = mMemory[mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8];
+		uint8_t res = value ^ mAccumulator;
+		if (ISDEBUG) { std::cout << "EOR" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
+		setZeroAndNegativeFlags(res);
+	}
+
+	void xorWithMemoryOrAccIndY()
+	{
+		uint8_t lookupaddress = fetch();
+		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
+		uint8_t res = value ^ mAccumulator;
+		if (ISDEBUG) { std::cout << "EOR" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
+		setZeroAndNegativeFlags(res);
+	}
+
 	// AND WITH MEMORY OR ACCUMULATOR
 
 	void andWithMemoryOrAccImmedeate()
@@ -1341,6 +1509,29 @@ private:
 
 
 
+
+	void bitTestAbsolute()
+	{
+		uint16_t addr = fetch16();
+		uint8_t value = mMemory[addr];
+		N = value & 0x80;
+		V = value & 0x40;
+		Z = value & mAccumulator == 0;
+		if (ISDEBUG) { std::cout << "BIT" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
+	}
+
+	void bitTestZeroPage()
+	{
+		uint8_t addr = fetch();
+		uint8_t value = mMemory[addr];
+		N = value & 0x80;
+		V = value & 0x40;
+		Z = value & mAccumulator == 0;
+		if (ISDEBUG) { std::cout << "BIT" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+	}
+
+
+
 	void branchNonZero() {
 		int8_t fetchedByte = branchBase("BNE");
 		if (Z == 0)
@@ -1433,6 +1624,20 @@ private:
 
 		uint16_t jumpAddress = fetch16();
 
+		//std::cout << "New Address: " << jumpAddress << std::endl;
+		if (ISDEBUG) { std::cout << "JMP" << "\t" << "#" << jumpAddress; }
+		return jumpAddress;
+	}
+
+	uint16_t jumpAbsoluteSavingAddress() {
+		//std::cout << "JMP (absolute) started, PC: " << mProgramCounter << std::endl;
+
+		uint16_t jumpAddress = fetch16();
+		uint16_t savedPosition = mProgramCounter + 2;
+		mMemory[mStackPointer] = mProgramCounter & 0x0F;
+		mStackPointer--;
+		mMemory[mStackPointer] = (mProgramCounter & 0xF0) >> 4;
+		mStackPointer--;
 		//std::cout << "New Address: " << jumpAddress << std::endl;
 		if (ISDEBUG) { std::cout << "JMP" << "\t" << "#" << jumpAddress; }
 		return jumpAddress;
