@@ -166,6 +166,8 @@ CPYAbs = 0xCC,
 
 BITAbs = 0x2C,
 BITZeroP = 0x24,
+
+HALT = 0xFF // Undocumented code, used for testing
 };
 
 enum addressMode // Prototype enum for addressing modes, used for unified output function.
@@ -198,10 +200,36 @@ public:
 		memcpy(mMemory + offset, program, size);
 	}
 
-	void execute() {
+	void reset() {
+		mProgramCounter = 0xFFFE;
+		mProgramCounter = fetch16();
+	}
+
+	void executeFrom(uint16_t start) {
+		mProgramCounter = start;
 		while (true) {
 			uint8_t opcode = fetch();
-			executeOpcode((OpCode)opcode);
+			if (opcode == HALT) { return; }
+			if (!executeOpcode((OpCode)opcode))
+			{
+				printMemory();
+				std::cerr << "Unknown opcode: " << std::hex << static_cast<int>(opcode) << std::endl;
+				return;
+			}
+		}
+	}
+
+	void execute() {
+		// execute from current mProgramCounter
+		while (true) {
+			uint8_t opcode = fetch();
+			if (opcode == HALT) { return; }
+			if (!executeOpcode((OpCode)opcode))
+			{
+				printMemory();
+				std::cerr << "Unknown opcode: " << std::hex << static_cast<int>(opcode) << std::endl;
+				return;
+			}
 		}
 	}
 
@@ -212,38 +240,16 @@ public:
 		std::cout << std::endl;
 	}
 
-private:
+protected:
 	uint8_t mMemory[65536];
 	uint8_t mAccumulator, mRegisterX, mRegisterY;
-	uint16_t mProgramCounter = 256;
+	uint16_t mProgramCounter;
 	uint8_t mStackPointer;
 	uint8_t C, Z, I, D, B, V, N;
 
-	uint8_t fetch() {
-		uint8_t data = mMemory[mProgramCounter];
-		mProgramCounter++;
-		return data;
-	}
+	static constexpr uint16_t stackOffset = 0x100;
 
-	uint16_t fetch16() {
-		return fetch() + (fetch() << 8);
-	}
-	
-	void printRegisterInfo()
-	{
-		std::cout << std::hex << "\t" << ";"
-			<< std::setfill('0')
-			<< " A:" << std::setw(2) << (unsigned int)mAccumulator
-			<< " X:" << std::setw(2) << (unsigned int)mRegisterX
-			<< " Y:" << std::setw(2) << (unsigned int)mRegisterY
-			<< " ST: CZIDBVN " << std::setw(1) << (int)C << (int)Z << (int)I << (int)D << (int)B << (int)V << (int)N
-			<< " PC:" << std::setw(4) << (uint16_t)mProgramCounter
-			<< " SP:" << std::setw(2) << (int)mStackPointer
-			<< std::setw(0) << std::setfill(' ')
-			<< "\n";
-	}
-
-	void executeOpcode(OpCode opcode) {
+	bool executeOpcode(OpCode opcode) {
 		if (ISDEBUG)
 		{
 			// fetch already performed before, so we write PC before fetch
@@ -709,20 +715,47 @@ private:
 			if (ISDEBUG) { std::cout << "NOP" << "\t"; }
 			break;
 		default:
-			printMemory();
-			std::cerr << "Unknown opcode: " << std::hex << static_cast<int>(opcode) << std::endl;
-			std::exit(1);
+			return false;
 		}
 		if (ISDEBUG)
 		{
 			printRegisterInfo();
 		}
+
+		return true;
 	}
+
+private:
+
+	uint8_t fetch() {
+		uint8_t data = mMemory[mProgramCounter];
+		mProgramCounter++;
+		return data;
+	}
+
+	uint16_t fetch16() {
+		return fetch() + (fetch() << 8);
+	}
+
+	void printRegisterInfo()
+	{
+		std::cout << std::hex << "\t" << ";"
+			<< std::setfill('0')
+			<< " A:" << std::setw(2) << (unsigned int)mAccumulator
+			<< " X:" << std::setw(2) << (unsigned int)mRegisterX
+			<< " Y:" << std::setw(2) << (unsigned int)mRegisterY
+			<< " ST: CZIDBVN " << std::setw(1) << (int)C << (int)Z << (int)I << (int)D << (int)B << (int)V << (int)N
+			<< " PC:" << std::setw(4) << (uint16_t)mProgramCounter
+			<< " SP:" << std::setw(2) << (int)mStackPointer
+			<< std::setw(0) << std::setfill(' ')
+			<< "\n";
+	}
+
 	void breakCPU()
 	{
-		mMemory[mStackPointer] = (mProgramCounter & 0xF0) >> 8;
+		mMemory[stackOffset+mStackPointer] = (mProgramCounter & 0xF0) >> 8;
 		mStackPointer--;
-		mMemory[mStackPointer] = mProgramCounter & 0x0F;
+		mMemory[stackOffset+mStackPointer] = mProgramCounter & 0x0F;
 		mStackPointer--;
 		uint8_t Status = 0x00;
 		Status += (N ? 0x80 : 0);
@@ -733,14 +766,14 @@ private:
 		Status += 0x04;
 		Status += (Z ? 0x02 : 0);
 		Status += (C ? 0x01 : 0);
-		mMemory[mStackPointer] = Status;
+		mMemory[stackOffset+mStackPointer] = Status;
 		mStackPointer--;
 		if (ISDEBUG) { std::cout << "BRK" << "\t"; }
 	}
 
 	uint8_t rotateright(uint8_t value)
 	{
-		uint8_t resultingvalue = value >> 1 + (C ? 0x80 : 0); //I rotate the entered value by 1 position right, replacing the left-most bit of the ROTATED VALUE with carry (either 1 or 0)
+		uint8_t resultingvalue = (value >> 1) | (C ? 0x80 : 0); //I rotate the entered value by 1 position right, replacing the left-most bit of the ROTATED VALUE with carry (either 1 or 0)
 		C = value & 0x1;                                      //I store the bit that disappears due to shifting of the number in the carry flag
 		setZeroAndNegativeFlags(resultingvalue);              //I also set the correct flags if the resulting value after shifting appears to be zero or negative
 		return resultingvalue;                                //I return the value 
@@ -748,7 +781,7 @@ private:
 
 	uint8_t rotateleft(uint8_t value)
 	{
-		uint8_t resultingvalue = value << 1 + (C ? 1 : 0);    //I rotate the entered value 1 position left, replacing the right-most bit of the ROTATED VALUE with value of carry 
+		uint8_t resultingvalue = (value << 1) | (C ? 1 : 0);  //I rotate the entered value 1 position left, replacing the right-most bit of the ROTATED VALUE with value of carry 
 		C = value & 0x80;                                     //I store the left-most bit that disappears due to shifting into carry flag
 		setZeroAndNegativeFlags(resultingvalue);              //I check if the value is negative or zero
 		return resultingvalue;                                //I return the value
@@ -885,7 +918,7 @@ private:
 		Status += (I ? 0x04 : 0);
 		Status += (Z ? 0x02 : 0);
 		Status += (C ? 0x01 : 0);
-		mMemory[mStackPointer] = Status;
+		mMemory[stackOffset+mStackPointer] = Status;
 		mStackPointer--;
 		if (ISDEBUG) { std::cout << "PHP" << "\t"; }
 	}
@@ -893,19 +926,19 @@ private:
 	void pullStatusFromStack()
 	{
 		mStackPointer++;
-		uint8_t Status = mMemory[mStackPointer];
-		C = Status & 0x01;
-		Z = Status & 0x02;
-		I = Status & 0x04;
-		D = Status & 0x08;
-		V = Status & 0x40;
-		N = Status & 0x80;
+		uint8_t Status = mMemory[stackOffset+mStackPointer];
+		C = (Status & 0x01) != 0;
+		Z = (Status & 0x02) != 0;
+		I = (Status & 0x04) != 0;
+		D = (Status & 0x08) != 0;
+		V = (Status & 0x40) != 0;
+		N = (Status & 0x80) != 0;
 		if (ISDEBUG) { std::cout << "PLP" << "\t"; }
 	}
 
 	void pushAccToStack()
 	{
-		mMemory[mStackPointer] = mAccumulator;
+		mMemory[stackOffset+mStackPointer] = mAccumulator;
 		mStackPointer--;
 		if (ISDEBUG) { std::cout << "PHA" << "\t"; }
 	}
@@ -913,24 +946,24 @@ private:
 	void pullAccFromStack()
 	{
 		mStackPointer++;
-		mAccumulator = mMemory[mStackPointer];
+		mAccumulator = mMemory[stackOffset+mStackPointer];
 		if (ISDEBUG) { std::cout << "PLA" << "\t"; }
 	}
 
 	void returnFromInterrupt()
 	{
 		mStackPointer++;
-		uint8_t Status = mMemory[mStackPointer];
-		C = Status & 0x01;
-		Z = Status & 0x02;
-		I = Status & 0x04;
-		D = Status & 0x08;
-		V = Status & 0x40;
-		N = Status & 0x80;
+		uint8_t Status = mMemory[stackOffset+mStackPointer];
+		C = (Status & 0x01) != 0;
+		Z = (Status & 0x02) != 0;
+		I = (Status & 0x04) != 0;
+		D = (Status & 0x08) != 0;
+		V = (Status & 0x40) != 0;
+		N = (Status & 0x80) != 0;
 		mStackPointer++;
-		uint16_t ProgramCounter = mMemory[mStackPointer];
+		uint16_t ProgramCounter = mMemory[stackOffset+mStackPointer];
 		mStackPointer++;
-		ProgramCounter += (mMemory[mStackPointer] << 8);
+		ProgramCounter += (mMemory[stackOffset+mStackPointer] << 8);
 		mProgramCounter = ProgramCounter;
 		if (ISDEBUG) { std::cout << "RTI" << "\t"; }
 	}
@@ -938,9 +971,9 @@ private:
 	void returnFromSubroutine()
 	{
 		mStackPointer++;
-		uint16_t ProgramCounter = mMemory[mStackPointer];
+		uint16_t ProgramCounter = mMemory[stackOffset+mStackPointer];
 		mStackPointer++;
-		ProgramCounter += (mMemory[mStackPointer] << 8);
+		ProgramCounter += (mMemory[stackOffset+mStackPointer] << 8);
 		mProgramCounter = ProgramCounter + 1;
 		if (ISDEBUG) { std::cout << "RTS" << "\t"; }
 	}
@@ -1514,8 +1547,8 @@ private:
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr];
-		N = value & 0x80;
-		V = value & 0x40;
+		N = (value & 0x80) != 0;
+		V = (value & 0x40) != 0;
 		Z = value & mAccumulator == 0;
 		if (ISDEBUG) { std::cout << "BIT" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
 	}
@@ -1524,8 +1557,8 @@ private:
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr];
-		N = value & 0x80;
-		V = value & 0x40;
+		N = (value & 0x80) != 0;
+		V = (value & 0x40) != 0;
 		Z = value & mAccumulator == 0;
 		if (ISDEBUG) { std::cout << "BIT" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
 	}
@@ -1634,12 +1667,12 @@ private:
 
 		uint16_t jumpAddress = fetch16();
 		uint16_t savedPosition = mProgramCounter + 2;
-		mMemory[mStackPointer] = mProgramCounter & 0x0F;
+		mMemory[stackOffset+mStackPointer] = mProgramCounter & 0x0F;
 		mStackPointer--;
-		mMemory[mStackPointer] = (mProgramCounter & 0xF0) >> 4;
+		mMemory[stackOffset+mStackPointer] = (mProgramCounter & 0xF0) >> 4;
 		mStackPointer--;
 		//std::cout << "New Address: " << jumpAddress << std::endl;
-		if (ISDEBUG) { std::cout << "JMP" << "\t" << "#" << jumpAddress; }
+		if (ISDEBUG) { std::cout << "JSR" << "\t" << "#" << jumpAddress; }
 		return jumpAddress;
 	}
 
@@ -1810,7 +1843,67 @@ private:
 	}
 };
 
+class MOS6502Debug : public MOS6502
+{
+public:
+	uint8_t  getAccumulator()    { return mAccumulator; }
+	uint16_t getProgramCounter() { return mProgramCounter; }
+	uint8_t  getStackPointer()   { return mStackPointer; }
+	uint8_t  getRegisterX()      { return mRegisterX; }
+	uint8_t  getRegisterY()      { return mRegisterY; }
+
+	uint8_t  getMemory(uint16_t addr) { return mMemory[addr]; }
+};
+
+bool testBasicOps()
+{
+	bool isOk = true;
+
+	uint8_t program[] = {
+	 0xA9, 0x83, 0x8D, 0x01, 0x00, 0xA9, 0x05, 0x8D,
+	 0x02, 0x00, 0xA9, 0x81, 0x8D, 0x03, 0x00, 0xA9,
+	 0x73, 0x8D, 0x04, 0x00, 0x18, 0x20, 0x44, 0x10,
+	 0xFF, 0xA9, 0xFA, 0x8D, 0x01, 0x00, 0xA9, 0x03, //first was 0xea but changed to 0xff (halt)
+	 0x8D, 0x02, 0x00, 0x20, 0x51, 0x10, 0xEA, 0xA9,
+	 0x07, 0x8D, 0x01, 0x00, 0xA9, 0x06, 0x8D, 0x02,
+	 0x00, 0x20, 0x74, 0x10, 0xEA, 0xA9, 0x0A, 0x8D,
+	 0x01, 0x00, 0xA9, 0x05, 0x8D, 0x02, 0x00, 0x20,
+	 0x91, 0x10, 0xEA, 0x00, 0xA5, 0x01, 0x65, 0x03,
+	 0x85, 0x05, 0xA5, 0x02, 0x65, 0x04, 0x85, 0x06,
+	 0x60, 0xA9, 0x00, 0x85, 0x03, 0x85, 0x04, 0xA5,
+	 0x01, 0xC9, 0x00, 0xF0, 0x16, 0xA5, 0x02, 0xC9,
+	 0x00, 0xF0, 0x10, 0xC6, 0x02, 0xA5, 0x03, 0x18,
+	 0x65, 0x01, 0x85, 0x03, 0x90, 0xEF, 0xE6, 0x04,
+	 0x4C, 0x5D, 0x10, 0x60, 0xA9, 0x00, 0x85, 0x03,
+	 0xA5, 0x01, 0xC9, 0x00, 0xF0, 0x12, 0xA5, 0x02,
+	 0xC9, 0x00, 0xF0, 0x0C, 0xC6, 0x02, 0xA5, 0x03,
+	 0x18, 0x65, 0x01, 0x85, 0x03, 0x4C, 0x7E, 0x10,
+	 0x60, 0xA9, 0x00, 0x85, 0x03, 0xA5, 0x01, 0x85,
+	 0x04, 0xC5, 0x02, 0x30, 0x10, 0xE6, 0x03, 0xA5,
+	 0x04, 0x38, 0xE5, 0x02, 0x85, 0x04, 0xC5, 0x02,
+	 0x30, 0x03, 0x4C, 0x9D, 0x10, 0x60
+	};
+
+	MOS6502Debug cpu;
+	cpu.loadProgram(program, sizeof(program), 0x1000);
+	cpu.executeFrom(0x1000);
+
+	if (cpu.getMemory(0x05) != 0x04)
+	{
+		isOk = false;
+	}
+
+	if (cpu.getMemory(0x06) != 0x79)
+	{
+		isOk = false;
+	}
+
+	return(isOk);
+}
+
 int main() {
+
+	testBasicOps();
 
 	uint8_t program[] = {
 		0xE8,
