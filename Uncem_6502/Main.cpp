@@ -92,6 +92,16 @@ enum OpCode {
     ADCIndX = 0x61,        //(indirect, X)	ADC(oper, X)	61	2	6
     ADCIndY = 0x71,		//(indirect), Y	ADC(oper), Y	71	2	5 *
 
+	SBCImmediate = 0xE9,//immediate	SBC #oper	E9	2	2
+	SBCZeroP = 0xE5,//zeropage	SBC oper	E5	2	3
+	SBCZeroPX = 0xF5,//zeropage, X	SBC oper, X	F5	2	4
+	SBCAbs = 0xED,//absolute	SBC oper	ED	3	4
+	SBCAbsX = 0xFD,//absolute, X	SBC oper, X	FD	3	4 *
+	SBCAbsY = 0xF9,//absolute, Y	SBC oper, Y	F9	3	4 *
+	SBCIndX = 0xE1,//(indirect, X)	SBC(oper, X)	E1	2	6
+	SBCIndY = 0xF1,//(indirect), Y	SBC(oper), Y	F1	2	5 *
+
+
 ROLAcc = 0x2A, // Rotate left
 ROLZeroP = 0x26,
 ROLZeroPX = 0x36,
@@ -455,7 +465,7 @@ protected:
 			//LOGICAL AND ARITHMETICAL OPERATIONS
 
 		case ORAImmediate:                        //or with memory or accumulator
-			orWithMemoryOrAccImmedeate();
+			orWithMemoryOrAccImmediate();
 			break;
 		case ORAZeroP:
 			orWithMemoryOrAccZeroP();
@@ -480,7 +490,7 @@ protected:
 			break;
 
 		case EORImmediate:                        //or with memory or accumulator
-			orWithMemoryOrAccImmedeate();
+			orWithMemoryOrAccImmediate();
 			break;
 		case EORZeroP:
 			orWithMemoryOrAccZeroP();
@@ -506,7 +516,7 @@ protected:
 
 
 		case ANDImmediate:
-			andWithMemoryOrAccImmedeate();
+			andWithMemoryOrAccImmediate();
 			break;
 		case ANDZeroP:
 			andWithMemoryOrAccZeroP();
@@ -532,7 +542,7 @@ protected:
 
 
 		case ADCImmediate:
-			adcWithMemoryOrAccImmedeate();
+			adcWithMemoryOrAccImmediate();
 			break;
 		case ADCZeroP:
 			adcWithMemoryOrAccZeroP();
@@ -554,6 +564,31 @@ protected:
 			break;
 		case ADCIndY:
 			adcWithMemoryOrAccIndY();
+			break;
+
+		case SBCImmediate:
+			sbcWithMemoryOrAccImmediate();
+			break;
+		case SBCZeroP:
+			sbcWithMemoryOrAccZeroP();
+			break;
+		case SBCZeroPX:
+			sbcWithMemoryOrAccZeroPX();
+			break;
+		case SBCAbs:
+			sbcWithMemoryOrAccAbs();
+			break;
+		case SBCAbsX:
+			sbcWithMemoryOrAccAbsX();
+			break;
+		case SBCAbsY:
+			sbcWithMemoryOrAccAbsY();
+			break;
+		case SBCIndX:
+			sbcWithMemoryOrAccIndX();
+			break;
+		case SBCIndY:
+			sbcWithMemoryOrAccIndY();
 			break;
 
 
@@ -1284,153 +1319,153 @@ private:
 
 	//OR WITH MEMORY OR ACCUMULATOR
 
-	void orWithMemoryOrAccImmedeate()
+	void orWithMemoryOrAccImmediate()
 	{
 		uint8_t value = fetch();
-		uint8_t res = value | mAccumulator;
+		mAccumulator = value | mAccumulator;
 		if (ISDEBUG) { std::cout << "ORA" << "\t" << "#" << (int)value; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void orWithMemoryOrAccZeroP()
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr];
-		uint8_t res = value | mAccumulator;
+		mAccumulator = value | mAccumulator;
 		if (ISDEBUG) { std::cout << "ORA" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void orWithMemoryOrAccZeroPX()
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr + mRegisterX];
-		uint8_t res = value | mAccumulator;
+		mAccumulator = value | mAccumulator;
 		if (ISDEBUG) { std::cout << "ORA" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void orWithMemoryOrAccAbs()
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr];
-		uint8_t res = value | mAccumulator;
+		mAccumulator = value | mAccumulator;
 		if (ISDEBUG) { std::cout << "ORA" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void orWithMemoryOrAccAbsX()
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterX];
-		uint8_t res = value | mAccumulator;
+		mAccumulator = value | mAccumulator;
 		if (ISDEBUG) { std::cout << "ORA" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void orWithMemoryOrAccAbsY()
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterY];
-		uint8_t res = value | mAccumulator;
+		mAccumulator = value | mAccumulator;
 		if (ISDEBUG) { std::cout << "ORA" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void orWithMemoryOrAccIndX()
 	{
 		uint8_t lookupaddress = fetch() + mRegisterX;
 		uint8_t value = mMemory[mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8];
-		uint8_t res = value | mAccumulator;
+		mAccumulator = value | mAccumulator;
 		if (ISDEBUG) { std::cout << "ORA" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void orWithMemoryOrAccIndY()
 	{
 		uint8_t lookupaddress = fetch();
 		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
-		uint8_t res = value | mAccumulator;
+		mAccumulator = value | mAccumulator;
 		if (ISDEBUG) { std::cout << "ORA" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	//XOR WITH MEMORY OR ACCUMULATOR
 
-	void xorWithMemoryOrAccImmedeate()
+	void xorWithMemoryOrAccImmediate()
 	{
 		uint8_t value = fetch();
-		uint8_t res = value ^ mAccumulator;
+		mAccumulator = value ^ mAccumulator;
 		if (ISDEBUG) { std::cout << "EOR" << "\t" << "#" << (int)value; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void xorWithMemoryOrAccZeroP()
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr];
-		uint8_t res = value ^ mAccumulator;
+		mAccumulator = value ^ mAccumulator;
 		if (ISDEBUG) { std::cout << "EOR" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void xorWithMemoryOrAccZeroPX()
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr + mRegisterX];
-		uint8_t res = value ^ mAccumulator;
+		mAccumulator = value ^ mAccumulator;
 		if (ISDEBUG) { std::cout << "EOR" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void xorWithMemoryOrAccAbs()
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr];
-		uint8_t res = value ^ mAccumulator;
+		mAccumulator = value ^ mAccumulator;
 		if (ISDEBUG) { std::cout << "EOR" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void xorWithMemoryOrAccAbsX()
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterX];
-		uint8_t res = value ^ mAccumulator;
+		mAccumulator = value ^ mAccumulator;
 		if (ISDEBUG) { std::cout << "EOR" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void xorWithMemoryOrAccAbsY()
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterY];
-		uint8_t res = value ^ mAccumulator;
+		mAccumulator = value ^ mAccumulator;
 		if (ISDEBUG) { std::cout << "EOR" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void xorWithMemoryOrAccIndX()
 	{
 		uint8_t lookupaddress = fetch() + mRegisterX;
 		uint8_t value = mMemory[mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8];
-		uint8_t res = value ^ mAccumulator;
+		mAccumulator = value ^ mAccumulator;
 		if (ISDEBUG) { std::cout << "EOR" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	void xorWithMemoryOrAccIndY()
 	{
 		uint8_t lookupaddress = fetch();
 		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
-		uint8_t res = value ^ mAccumulator;
+		mAccumulator = value ^ mAccumulator;
 		if (ISDEBUG) { std::cout << "EOR" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
-		setZeroAndNegativeFlags(res);
+		setZeroAndNegativeFlags(mAccumulator);
 	}
 
 	// AND WITH MEMORY OR ACCUMULATOR
 
-	void andWithMemoryOrAccImmedeate()
+	void andWithMemoryOrAccImmediate()
 	{
 		uint8_t value = fetch();
 		mAccumulator = value & mAccumulator;
@@ -1503,7 +1538,7 @@ private:
 
 	//ADC
 
-	void adcWithMemoryOrAccImmedeate()
+	void adcWithMemoryOrAccImmediate()
 	{
 		uint8_t value = fetch();
 		mAccumulator = add(value,mAccumulator, C, D);
@@ -1564,6 +1599,71 @@ private:
 		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
 		mAccumulator = add(value,mAccumulator, C, D);
 		if (ISDEBUG) { std::cout << "ADC" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
+	}
+
+	//SBC
+
+	void sbcWithMemoryOrAccImmediate()
+	{
+		uint8_t value = fetch();
+		mAccumulator = sub(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << "#" << (int)value; }
+	}
+
+	void sbcWithMemoryOrAccZeroP()
+	{
+		uint8_t addr = fetch();
+		uint8_t value = mMemory[addr];
+		mAccumulator = sub(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+	}
+
+	void sbcWithMemoryOrAccZeroPX()
+	{
+		uint8_t addr = fetch();
+		uint8_t value = mMemory[addr + mRegisterX];
+		mAccumulator = add(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
+	}
+
+	void sbcWithMemoryOrAccAbs()
+	{
+		uint16_t addr = fetch16();
+		uint8_t value = mMemory[addr];
+		mAccumulator = sub(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
+	}
+
+	void sbcWithMemoryOrAccAbsX()
+	{
+		uint16_t addr = fetch16();
+		uint8_t value = mMemory[addr + mRegisterX];
+		mAccumulator = sub(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
+	}
+
+	void sbcWithMemoryOrAccAbsY()
+	{
+		uint16_t addr = fetch16();
+		uint8_t value = mMemory[addr + mRegisterY];
+		mAccumulator = sub(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
+	}
+
+	void sbcWithMemoryOrAccIndX()
+	{
+		uint8_t lookupaddress = fetch() + mRegisterX;
+		uint8_t value = mMemory[mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8];
+		mAccumulator = sub(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
+	}
+
+	void sbcWithMemoryOrAccIndY()
+	{
+		uint8_t lookupaddress = fetch();
+		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
+		mAccumulator = sub(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
 	}
 
 	//"VAL" IN ALL COMPARE OPERATIONS IS VALUE OF THE CHOSEN REGISTER AND IS NOT THE VALUE IT IS BEING COMPARED WITH.
