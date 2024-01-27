@@ -59,8 +59,18 @@ enum OpCode {
 
 	INY = 0xC8,
 	INX = 0xE8,
+	INCZeroP = 0xE6,
+	INCZeroPX = 0xF6,
+	INCAbs = 0xEE,
+	INCAbsX = 0xFE,
+
 	DEX = 0xCA, // Decrement X by 1
 	DEY = 0x88, // Decrement Y by 1
+	DECZeroP = 0xC6,
+	DECZeroPX = 0xD6,
+	DECAbs = 0xCE,
+	DECAbsX = 0xDE,
+
 
 	//flag instructions
 
@@ -420,6 +430,19 @@ protected:
 			mRegisterX++;
 			setZeroAndNegativeFlags(mRegisterX);
 			break;
+		case INCZeroP:
+			incrementZeroPage();
+			break;
+		case INCZeroPX:
+			incrementZeroPageX();
+			break;
+		case INCAbs:
+			incrementAbsolute();
+			break;
+		case INCAbsX:
+			incrementAbsoluteX();
+			break;
+
 		case DEX:
 			if (ISDEBUG) { std::cout << "DEX" << "\t"; }
 			mRegisterX--;
@@ -429,6 +452,18 @@ protected:
 			if (ISDEBUG) { std::cout << "DEY" << "\t"; }
 			mRegisterY--;
 			setZeroAndNegativeFlags(mRegisterY);
+			break;
+		case DECZeroP:
+			decrementZeroPage();
+			break;
+		case DECZeroPX:
+			decrementZeroPageX();
+			break;
+		case DECAbs:
+			decrementAbsolute();
+			break;
+		case DECAbsX:
+			decrementAbsoluteX();
 			break;
 
 			//FLAG OPERATIONS
@@ -841,6 +876,74 @@ private:
 		if (ISDEBUG) { std::cout << "BRK" << "\t"; }
 	}
 
+
+
+	void incrementZeroPage()
+	{
+		uint8_t addr = fetch();                              
+		mMemory[addr]++;
+		OutForComAndModeENUM("INC", ZPG, addr);
+		setZeroAndNegativeFlags(mMemory[addr]);
+	}
+
+	void incrementZeroPageX()
+	{
+		uint8_t addr = fetch();
+		mMemory[addr + mRegisterX]++;
+		OutForComAndModeENUM("INC", ZPG, addr);
+		setZeroAndNegativeFlags(mMemory[addr + mRegisterX]);
+	}
+
+	void incrementAbsoluteX()
+	{
+		uint16_t addr = fetch16();
+		mMemory[addr + mRegisterX]++;
+		OutForComAndModeENUM("INC", ABX, addr);
+		setZeroAndNegativeFlags(mMemory[addr + mRegisterX]);
+	}
+
+	void incrementAbsolute()
+	{
+		uint8_t addr = fetch16();
+		mMemory[addr]++;
+		OutForComAndModeENUM("INC", ABS, addr);
+		setZeroAndNegativeFlags(mMemory[addr]);
+	}
+
+
+	void decrementZeroPage()
+	{
+		uint8_t addr = fetch();                               
+		mMemory[addr]--;
+		OutForComAndModeENUM("DEC", ZPG, addr);
+		setZeroAndNegativeFlags(mMemory[addr]);
+	}
+
+	void decrementZeroPageX()
+	{
+		uint8_t addr = fetch();
+		mMemory[addr + mRegisterX]--;
+		OutForComAndModeENUM("DEC", ZPG, addr);
+		setZeroAndNegativeFlags(mMemory[addr + mRegisterX]);
+	}
+
+	void decrementAbsoluteX()
+	{
+		uint16_t addr = fetch16();
+		mMemory[addr + mRegisterX]--;
+		OutForComAndModeENUM("DEC", ABX, addr);
+		setZeroAndNegativeFlags(mMemory[addr + mRegisterX]);
+	}
+
+	void decrementAbsolute()
+	{
+		uint8_t addr = fetch16();
+		mMemory[addr]--;
+		OutForComAndModeENUM("DEC", ABS, addr);
+		setZeroAndNegativeFlags(mMemory[addr]);
+	}
+
+
 	uint8_t rotateright(uint8_t value)
 	{
 		uint8_t resultingvalue = (value >> 1) | (C ? 0x80 : 0); //I rotate the entered value by 1 position right, replacing the left-most bit of the ROTATED VALUE with carry (either 1 or 0)
@@ -934,35 +1037,37 @@ private:
 			switch (mode) {
 			case IMD:
 				std::cout << instruction << "\t" << "#" << (int)addr;
+				break;
 			case ZPG:
 				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr;
-
+				break;
 			case ZPX:
 				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x";
-
+				break;
 			case ZPY:
 				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",y";
-
+				break;
 			case ABS:
 				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr;
-
+				break;
 			case ABX:
 				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x";
-
+				break;
 			case ABY:
 				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y";
-
+				break;
 			case INDX:
 				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x)";
-
+				break;
 			case INDY:
 				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << "),y";
-
+				break;
 			case A:
 				std::cout << instruction << "\t" << "A";
-
+				break;
 			default:
 				std::cout << instruction << "\t";
+				break;
 			}
 		}
 	}
@@ -1212,7 +1317,6 @@ private:
 
 
 
-
 	void transferAccToX()
 	{
 		if (ISDEBUG) { std::cout << "TAX" << "\t"; }
@@ -1299,10 +1403,10 @@ private:
 			result += leftNibble << 4;
 		}
 		else {
-			result = valueA + (~valueB) + carry;
+			result = valueA - valueB - (carry ? 0 : 1); // CF inverted on sub
 		}
 
-		C = (result & 0x100) != 0;
+		C = (result & 0x100) == 0; // CF inverted on sub
 		V = ((valueA ^ valueB) & 0x80) == 0 && ((valueA ^ result) & 0x80) != 0;
 		Z = (result & 0xFF) == 0;
 		N = (result & 0x80) != 0;
@@ -1313,7 +1417,7 @@ private:
 	void compareBase(uint8_t valueA, uint8_t valueB)
 	{
 		uint8_t tempVSave = V;
-		uint8_t result = sub(valueA, valueB, false, false);
+		uint8_t result = sub(valueA, valueB, true, false);
 		V = tempVSave;
 	}
 
@@ -2062,7 +2166,7 @@ bool testBasicOps()
 	 0x02, 0x00, 0xA9, 0x81, 0x8D, 0x03, 0x00, 0xA9,
 	 0x73, 0x8D, 0x04, 0x00, 0x18, 0x20, 0x44, 0x10,
 	 0xFF, 0xA9, 0xFA, 0x8D, 0x01, 0x00, 0xA9, 0x03, //first was 0xea but changed to 0xff (halt)
-	 0x8D, 0x02, 0x00, 0x20, 0x51, 0x10, 0xEA, 0xA9,
+	 0x8D, 0x02, 0x00, 0x20, 0x51, 0x10, 0xFF, 0xA9,
 	 0x07, 0x8D, 0x01, 0x00, 0xA9, 0x06, 0x8D, 0x02,
 	 0x00, 0x20, 0x74, 0x10, 0xEA, 0xA9, 0x0A, 0x8D,
 	 0x01, 0x00, 0xA9, 0x05, 0x8D, 0x02, 0x00, 0x20,
@@ -2084,17 +2188,41 @@ bool testBasicOps()
 
 	MOS6502Debug cpu;
 	cpu.loadProgram(program, sizeof(program), 0x1000);
-	cpu.executeFrom(0x1000);
 
-	if (cpu.getMemory(0x05) != 0x04)
+	if (isOk)
 	{
-		isOk = false;
+		// ; test ADC_XY16
+		cpu.executeFrom(0x1000);
+
+		if (cpu.getMemory(0x05) != 0x04)
+		{
+			isOk = false;
+		}
+
+		if (cpu.getMemory(0x06) != 0x79)
+		{
+			isOk = false;
+		}
+
+		std::cout << "Test ADC_XY16:" << ((isOk) ? "OK" : "FAIL") << "\n";
 	}
 
-	if (cpu.getMemory(0x06) != 0x79)
+	if (isOk)
 	{
-		isOk = false;
-	}
+		cpu.executeFrom(0x1019);
+
+		if (cpu.getMemory(0x03) != 0xEE)
+		{
+			isOk = false;
+		}
+
+		if (cpu.getMemory(0x04) != 0x02)
+		{
+			isOk = false;
+		}
+
+		std::cout << "Test MUL_XY16:" << ((isOk) ? "OK" : "FAIL") << "\n";
+    }
 
 	return(isOk);
 }
