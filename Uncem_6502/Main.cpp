@@ -1,7 +1,8 @@
 #include <iostream>
 #include <iomanip>
 
-enum OpCode {
+enum OpCode
+{
 	BRK = 0,
 	JMPAbs = 0x4C,
 	JMPInd = 0x6C,
@@ -98,9 +99,9 @@ enum OpCode {
 	ADCZeroPX = 0x75,    //zeropage, X	ADC oper, X	75	2	4
 	ADCAbs = 0x6D,        //absolute	ADC oper	6D	3	4
 	ADCAbsX = 0x7D,       //absolute, X	ADC oper, X	7D	3	4 *
-    ADCAbsY = 0x79,       //absolute, Y	ADC oper, Y	79	3	4 *
-    ADCIndX = 0x61,        //(indirect, X)	ADC(oper, X)	61	2	6
-    ADCIndY = 0x71,		//(indirect), Y	ADC(oper), Y	71	2	5 *
+	ADCAbsY = 0x79,       //absolute, Y	ADC oper, Y	79	3	4 *
+	ADCIndX = 0x61,        //(indirect, X)	ADC(oper, X)	61	2	6
+	ADCIndY = 0x71,		//(indirect), Y	ADC(oper), Y	71	2	5 *
 
 	SBCImmediate = 0xE9,//immediate	SBC #oper	E9	2	2
 	SBCZeroP = 0xE5,//zeropage	SBC oper	E5	2	3
@@ -112,91 +113,91 @@ enum OpCode {
 	SBCIndY = 0xF1,//(indirect), Y	SBC(oper), Y	F1	2	5 *
 
 
-ROLAcc = 0x2A, // Rotate left
-ROLZeroP = 0x26,
-ROLZeroPX = 0x36,
-ROLAbs = 0x2E,
-ROLAbsX = 0x3E,
+	ROLAcc = 0x2A, // Rotate left
+	ROLZeroP = 0x26,
+	ROLZeroPX = 0x36,
+	ROLAbs = 0x2E,
+	ROLAbsX = 0x3E,
 
-RORAcc = 0x6A, // Rotate right
-RORZeroP = 0x66,
-RORZeroPX = 0x76,
-RORAbs = 0x6E,
-RORAbsX = 0x7E,
+	RORAcc = 0x6A, // Rotate right
+	RORZeroP = 0x66,
+	RORZeroPX = 0x76,
+	RORAbs = 0x6E,
+	RORAbsX = 0x7E,
 
-ASLAcc = 0x0A, //Arithmetic shift left
-ASLZeroP = 0x06,
-ASLZeroPX = 0x16,
-ASLAbs = 0x0E,
-ASLAbsX = 0x1E,
+	ASLAcc = 0x0A, //Arithmetic shift left
+	ASLZeroP = 0x06,
+	ASLZeroPX = 0x16,
+	ASLAbs = 0x0E,
+	ASLAbsX = 0x1E,
 
-LSRAcc = 0x4A, //Logical shift right
-LSRZeroP = 0x46,
-LSRZeroPX = 0x56,
-LSRAbs = 0x4E,
-LSRAbsX = 0x5E,
+	LSRAcc = 0x4A, //Logical shift right
+	LSRZeroP = 0x46,
+	LSRZeroPX = 0x56,
+	LSRAbs = 0x4E,
+	LSRAbsX = 0x5E,
 
-ORAImmediate = 0x09,  //or with memory or accumulator
-ORAZeroP = 0x05,
-ORAZeroPX = 0x15,
-ORAAbs = 0x0D,
-ORAAbsX = 0x1D,
-ORAAbsY = 0x19,
-ORAIndX = 0x01,
-ORAIndY = 0x11,
+	ORAImmediate = 0x09,  //or with memory or accumulator
+	ORAZeroP = 0x05,
+	ORAZeroPX = 0x15,
+	ORAAbs = 0x0D,
+	ORAAbsX = 0x1D,
+	ORAAbsY = 0x19,
+	ORAIndX = 0x01,
+	ORAIndY = 0x11,
 
-EORImmediate = 0x49,  //xor with memory or accumulator
-EORZeroP = 0x45,
-EORZeroPX = 0x55,
-EORAbs = 0x4D,
-EORAbsX = 0x5D,
-EORAbsY = 0x59,
-EORIndX = 0x41,
-EORIndY = 0x51,
+	EORImmediate = 0x49,  //xor with memory or accumulator
+	EORZeroP = 0x45,
+	EORZeroPX = 0x55,
+	EORAbs = 0x4D,
+	EORAbsX = 0x5D,
+	EORAbsY = 0x59,
+	EORIndX = 0x41,
+	EORIndY = 0x51,
 
-ANDImmediate = 0x29, //and with memory or accumulator
-ANDZeroP = 0x25,
-ANDZeroPX = 0x35,
-ANDAbs = 0x2D,
-ANDAbsX = 0x3D,
-ANDAbsY = 0x39,
-ANDIndX = 0x21,
-ANDIndY = 0x31,
+	ANDImmediate = 0x29, //and with memory or accumulator
+	ANDZeroP = 0x25,
+	ANDZeroPX = 0x35,
+	ANDAbs = 0x2D,
+	ANDAbsX = 0x3D,
+	ANDAbsY = 0x39,
+	ANDIndX = 0x21,
+	ANDIndY = 0x31,
 
-//Branch instructions
+	//Branch instructions
 
-BCC = 0x90, //Branch on Carry Clear
-BCS = 0xB0, //Branch on Carry Set
-BEQ = 0xF0, //Branch on Result Zero
-BMI = 0x30,  //Branch on result minus
-BNE = 0xD0,  //Branch on result non zero
-BPL = 0x10,  //Branch on result plus
-BVC = 0x50,
-BVS = 0x70,
+	BCC = 0x90, //Branch on Carry Clear
+	BCS = 0xB0, //Branch on Carry Set
+	BEQ = 0xF0, //Branch on Result Zero
+	BMI = 0x30,  //Branch on result minus
+	BNE = 0xD0,  //Branch on result non zero
+	BPL = 0x10,  //Branch on result plus
+	BVC = 0x50,
+	BVS = 0x70,
 
-//Compare instructions
+	//Compare instructions
 
-CMPImmediate = 0xC9,
-CMPZeroP = 0xC5,
-CMPZeroPX = 0xD5,
-CMPAbs = 0xCD,
-CMPAbsX = 0xDD,
-CMPAbsY = 0xD9,
-CMPIndX = 0xC1,
-CMPIndY = 0xD1,
+	CMPImmediate = 0xC9,
+	CMPZeroP = 0xC5,
+	CMPZeroPX = 0xD5,
+	CMPAbs = 0xCD,
+	CMPAbsX = 0xDD,
+	CMPAbsY = 0xD9,
+	CMPIndX = 0xC1,
+	CMPIndY = 0xD1,
 
-CPXImmediate = 0xE0, //Compare X With Memory
-CPXZeroP = 0xE4,
-CPXAbs = 0xEC,
+	CPXImmediate = 0xE0, //Compare X With Memory
+	CPXZeroP = 0xE4,
+	CPXAbs = 0xEC,
 
-CPYImmediate = 0xC0, //Compare Y With Memory
-CPYZeroP = 0xC4,
-CPYAbs = 0xCC,
+	CPYImmediate = 0xC0, //Compare Y With Memory
+	CPYZeroP = 0xC4,
+	CPYAbs = 0xCC,
 
-BITAbs = 0x2C,
-BITZeroP = 0x24,
+	BITAbs = 0x2C,
+	BITZeroP = 0x24,
 
-HALT = 0xFF // Undocumented code, used for testing
+	HALT = 0xFF // Undocumented code, used for testing
 };
 
 enum addressMode // Prototype enum for addressing modes, used for unified output function.
@@ -214,29 +215,36 @@ enum addressMode // Prototype enum for addressing modes, used for unified output
 	A = 11 //Accumulator as address mode, used in few commands
 };
 
-class MOS6502 {
+class MOS6502
+{
 public:
 	bool ISDEBUG = true; // change this manually in code to set it to either debug or usual mode (true for debug, false for usual)
 
 	MOS6502()
-		: mAccumulator(0), mRegisterX(0), mRegisterY(0), mProgramCounter(0), mStackPointer(0xFF), C(0), Z(0), I(0), D(0), B(0), V(0), N(0) {
-		for (std::size_t i = 0; i < sizeof(mMemory); i++) {
+		: mAccumulator(0), mRegisterX(0), mRegisterY(0), mProgramCounter(0), mStackPointer(0xFF), C(0), Z(0), I(0), D(0), B(0), V(0), N(0)
+	{
+		for (std::size_t i = 0; i < sizeof(mMemory); i++)
+		{
 			mMemory[i] = 0;
 		}
 	}
 
-	void loadProgram(const uint8_t* program, std::size_t size, uint16_t offset) {
+	void loadProgram(const uint8_t* program, std::size_t size, uint16_t offset)
+	{
 		memcpy(mMemory + offset, program, size);
 	}
 
-	void reset() {
+	void reset()
+	{
 		mProgramCounter = 0xFFFE;
 		mProgramCounter = fetch16();
 	}
 
-	void executeFrom(uint16_t start) {
+	void executeFrom(uint16_t start)
+	{
 		mProgramCounter = start;
-		while (true) {
+		while (true)
+		{
 			uint8_t opcode = fetch();
 			if (opcode == HALT) { return; }
 			if (!executeOpcode((OpCode)opcode))
@@ -248,9 +256,11 @@ public:
 		}
 	}
 
-	void execute() {
+	void execute()
+	{
 		// execute from current mProgramCounter
-		while (true) {
+		while (true)
+		{
 			uint8_t opcode = fetch();
 			if (opcode == HALT) { return; }
 			if (!executeOpcode((OpCode)opcode))
@@ -262,8 +272,10 @@ public:
 		}
 	}
 
-	void printMemory() {
-		for (std::size_t i = 0; i < sizeof(mMemory); i++) {
+	void printMemory()
+	{
+		for (std::size_t i = 0; i < sizeof(mMemory); i++)
+		{
 			std::cout << std::hex << static_cast<int>(mMemory[i]) << ", ";
 		}
 		std::cout << std::endl;
@@ -278,13 +290,15 @@ protected:
 
 	static constexpr uint16_t stackOffset = 0x100;
 
-	bool executeOpcode(OpCode opcode) {
+	bool executeOpcode(OpCode opcode)
+	{
 		if (ISDEBUG)
 		{
 			// fetch already performed before, so we write PC before fetch
 			std::cout << std::hex << std::setw(4) << std::setfill('0') << (mProgramCounter - 1) << std::setfill(' ') << std::setw(0) << "\t";
 		}
-		switch (opcode) {
+		switch (opcode)
+		{
 		case JMPAbs:
 			mProgramCounter = jumpAbsolute();
 			break;
@@ -798,7 +812,7 @@ protected:
 		case BRK:
 			breakCPU();          //Its Breaking Bad time!
 			break;
-		case RTI: 
+		case RTI:
 			returnFromInterrupt();
 			break;
 		case RTS:
@@ -832,13 +846,15 @@ protected:
 
 private:
 
-	uint8_t fetch() {
+	uint8_t fetch()
+	{
 		uint8_t data = mMemory[mProgramCounter];
 		mProgramCounter++;
 		return data;
 	}
 
-	uint16_t fetch16() {
+	uint16_t fetch16()
+	{
 		return fetch() + (fetch() << 8);
 	}
 
@@ -858,9 +874,9 @@ private:
 
 	void breakCPU()
 	{
-		mMemory[stackOffset+mStackPointer] = (mProgramCounter & 0xF0) >> 8;
+		mMemory[stackOffset + mStackPointer] = (mProgramCounter & 0xF0) >> 8;
 		mStackPointer--;
-		mMemory[stackOffset+mStackPointer] = mProgramCounter & 0x0F;
+		mMemory[stackOffset + mStackPointer] = mProgramCounter & 0x0F;
 		mStackPointer--;
 		uint8_t Status = 0x00;
 		Status += (N ? 0x80 : 0);
@@ -871,7 +887,7 @@ private:
 		Status += 0x04;
 		Status += (Z ? 0x02 : 0);
 		Status += (C ? 0x01 : 0);
-		mMemory[stackOffset+mStackPointer] = Status;
+		mMemory[stackOffset + mStackPointer] = Status;
 		mStackPointer--;
 		if (ISDEBUG) { std::cout << "BRK" << "\t"; }
 	}
@@ -880,7 +896,7 @@ private:
 
 	void incrementZeroPage()
 	{
-		uint8_t addr = fetch();                              
+		uint8_t addr = fetch();
 		mMemory[addr]++;
 		OutForComAndModeENUM("INC", ZPG, addr);
 		setZeroAndNegativeFlags(mMemory[addr]);
@@ -904,7 +920,7 @@ private:
 
 	void incrementAbsolute()
 	{
-		uint8_t addr = fetch16();
+		uint16_t addr = fetch16();
 		mMemory[addr]++;
 		OutForComAndModeENUM("INC", ABS, addr);
 		setZeroAndNegativeFlags(mMemory[addr]);
@@ -913,7 +929,7 @@ private:
 
 	void decrementZeroPage()
 	{
-		uint8_t addr = fetch();                               
+		uint8_t addr = fetch();
 		mMemory[addr]--;
 		OutForComAndModeENUM("DEC", ZPG, addr);
 		setZeroAndNegativeFlags(mMemory[addr]);
@@ -937,7 +953,7 @@ private:
 
 	void decrementAbsolute()
 	{
-		uint8_t addr = fetch16();
+		uint16_t addr = fetch16();
 		mMemory[addr]--;
 		OutForComAndModeENUM("DEC", ABS, addr);
 		setZeroAndNegativeFlags(mMemory[addr]);
@@ -1034,7 +1050,8 @@ private:
 		// addrmode should be made to enum, if you wish. This version is already working one, but i didnt implement it widely
 		if (ISDEBUG)
 		{
-			switch (mode) {
+			switch (mode)
+			{
 			case IMD:
 				std::cout << instruction << "\t" << "#" << (int)addr;
 				break;
@@ -1093,7 +1110,7 @@ private:
 		Status += (I ? 0x04 : 0);
 		Status += (Z ? 0x02 : 0);
 		Status += (C ? 0x01 : 0);
-		mMemory[stackOffset+mStackPointer] = Status;
+		mMemory[stackOffset + mStackPointer] = Status;
 		mStackPointer--;
 		if (ISDEBUG) { std::cout << "PHP" << "\t"; }
 	}
@@ -1101,7 +1118,7 @@ private:
 	void pullStatusFromStack()
 	{
 		mStackPointer++;
-		uint8_t Status = mMemory[stackOffset+mStackPointer];
+		uint8_t Status = mMemory[stackOffset + mStackPointer];
 		C = (Status & 0x01) != 0;
 		Z = (Status & 0x02) != 0;
 		I = (Status & 0x04) != 0;
@@ -1113,7 +1130,7 @@ private:
 
 	void pushAccToStack()
 	{
-		mMemory[stackOffset+mStackPointer] = mAccumulator;
+		mMemory[stackOffset + mStackPointer] = mAccumulator;
 		mStackPointer--;
 		if (ISDEBUG) { std::cout << "PHA" << "\t"; }
 	}
@@ -1121,14 +1138,14 @@ private:
 	void pullAccFromStack()
 	{
 		mStackPointer++;
-		mAccumulator = mMemory[stackOffset+mStackPointer];
+		mAccumulator = mMemory[stackOffset + mStackPointer];
 		if (ISDEBUG) { std::cout << "PLA" << "\t"; }
 	}
 
 	void returnFromInterrupt()
 	{
 		mStackPointer++;
-		uint8_t Status = mMemory[stackOffset+mStackPointer];
+		uint8_t Status = mMemory[stackOffset + mStackPointer];
 		C = (Status & 0x01) != 0;
 		Z = (Status & 0x02) != 0;
 		I = (Status & 0x04) != 0;
@@ -1136,9 +1153,9 @@ private:
 		V = (Status & 0x40) != 0;
 		N = (Status & 0x80) != 0;
 		mStackPointer++;
-		uint16_t ProgramCounter = mMemory[stackOffset+mStackPointer];
+		uint16_t ProgramCounter = mMemory[stackOffset + mStackPointer];
 		mStackPointer++;
-		ProgramCounter += (mMemory[stackOffset+mStackPointer] << 8);
+		ProgramCounter += (mMemory[stackOffset + mStackPointer] << 8);
 		mProgramCounter = ProgramCounter;
 		if (ISDEBUG) { std::cout << "RTI" << "\t"; }
 	}
@@ -1146,9 +1163,9 @@ private:
 	void returnFromSubroutine()
 	{
 		mStackPointer++;
-		uint16_t ProgramCounter = mMemory[stackOffset+mStackPointer];
+		uint16_t ProgramCounter = mMemory[stackOffset + mStackPointer];
 		mStackPointer++;
-		ProgramCounter += (mMemory[stackOffset+mStackPointer] << 8);
+		ProgramCounter += (mMemory[stackOffset + mStackPointer] << 8);
 		mProgramCounter = ProgramCounter + 1;
 		if (ISDEBUG) { std::cout << "RTS" << "\t"; }
 	}
@@ -1171,7 +1188,7 @@ private:
 
 	void rotateLeftZeroPageX()
 	{
-		uint8_t addr = fetch();  
+		uint8_t addr = fetch();
 		mMemory[addr + mRegisterX] = rotateleft(mMemory[addr + mRegisterX]);
 		OutForComAndModeENUM("ROL", ZPG, addr);
 		//if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
@@ -1187,7 +1204,7 @@ private:
 
 	void rotateLeftAbsolute()
 	{
-		uint8_t addr = fetch16();
+		uint16_t addr = fetch16();
 		mMemory[addr] = rotateleft(mMemory[addr]);
 		OutForComAndModeENUM("ROL", ABS, addr);
 		//if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
@@ -1229,7 +1246,7 @@ private:
 
 	void shiftLeftAbsolute()
 	{
-		uint8_t addr = fetch16();
+		uint16_t addr = fetch16();
 		mMemory[addr] = shiftleft(mMemory[addr]);
 		OutForComAndModeENUM("ASL", ABS, addr);
 		//if (ISDEBUG) { std::cout << "ASL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
@@ -1239,7 +1256,7 @@ private:
 
 	void rotateRightZeroPage()
 	{
-		uint8_t addr = fetch();                              
+		uint8_t addr = fetch();
 		mMemory[addr] = rotateright(mMemory[addr]);
 		OutForComAndModeENUM("ROR", ZPG, addr);
 		//if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
@@ -1269,7 +1286,7 @@ private:
 
 	void rotateRightAbsolute()
 	{
-		uint8_t addr = fetch16();
+		uint16_t addr = fetch16();
 		mMemory[addr] = rotateright(mMemory[addr]);
 		OutForComAndModeENUM("ROR", ABS, addr);
 		//if (ISDEBUG) { std::cout << "ROL" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
@@ -1309,7 +1326,7 @@ private:
 
 	void shiftRightAbsolute()
 	{
-		uint8_t addr = fetch16();
+		uint16_t addr = fetch16();
 		mMemory[addr] = rotateright(mMemory[addr]);
 		OutForComAndModeENUM("LSR", ABS, addr);
 		//if (ISDEBUG) { std::cout << "LSR" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
@@ -1362,22 +1379,26 @@ private:
 	{
 		uint16_t result;
 
-		if (bcd) {
+		if (bcd)
+		{
 			bool bcdCarry = false;
 			result = (valueA & 0xF) + (valueB & 0xF) + carry;
-			if (result > 9) {
+			if (result > 9)
+			{
 				result -= 10;
 				bcdCarry = true;
 			}
 
 			uint16_t leftNibble = ((valueA & 0xF0) >> 4) + ((valueB & 0xF0) >> 4) + bcdCarry;
-			if (leftNibble > 9) {
+			if (leftNibble > 9)
+			{
 				leftNibble -= 10;
 			}
 
 			result += leftNibble << 4;
 		}
-		else {
+		else
+		{
 			result = valueA + valueB + (carry ? 1 : 0);
 		}
 
@@ -1393,7 +1414,8 @@ private:
 	{
 		uint16_t result;
 
-		if (bcd) {
+		if (bcd)
+		{
 			bool bcdCarry = true;
 			result = (valueA & 0xF) + ((~valueB) & 0xF) + (bcdCarry ? 1 : 0); //BCDcarry will always be true here, if i am not mistaken?
 			if ((valueA & 0xF) < (valueB & 0xF))
@@ -1402,7 +1424,8 @@ private:
 			uint16_t leftNibble = (valueA & 0xF0) + ((~valueB) & 0xF0) + (bcdCarry ? 1 : 0);
 			result += leftNibble << 4;
 		}
-		else {
+		else
+		{
 			result = valueA - valueB - (carry ? 0 : 1); // CF inverted on sub
 		}
 
@@ -1479,7 +1502,7 @@ private:
 	void orWithMemoryOrAccIndX()
 	{
 		uint8_t lookupaddress = fetch() + mRegisterX;
-		uint8_t value = mMemory[mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8];
+		uint8_t value = mMemory[mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)];
 		mAccumulator = value | mAccumulator;
 		if (ISDEBUG) { std::cout << "ORA" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
 		setZeroAndNegativeFlags(mAccumulator);
@@ -1488,7 +1511,7 @@ private:
 	void orWithMemoryOrAccIndY()
 	{
 		uint8_t lookupaddress = fetch();
-		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
+		uint8_t value = mMemory[(mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)) + mRegisterY];
 		mAccumulator = value | mAccumulator;
 		if (ISDEBUG) { std::cout << "ORA" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
 		setZeroAndNegativeFlags(mAccumulator);
@@ -1552,7 +1575,7 @@ private:
 	void xorWithMemoryOrAccIndX()
 	{
 		uint8_t lookupaddress = fetch() + mRegisterX;
-		uint8_t value = mMemory[mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8];
+		uint8_t value = mMemory[mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)];
 		mAccumulator = value ^ mAccumulator;
 		if (ISDEBUG) { std::cout << "EOR" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
 		setZeroAndNegativeFlags(mAccumulator);
@@ -1561,7 +1584,7 @@ private:
 	void xorWithMemoryOrAccIndY()
 	{
 		uint8_t lookupaddress = fetch();
-		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
+		uint8_t value = mMemory[(mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)) + mRegisterY];
 		mAccumulator = value ^ mAccumulator;
 		if (ISDEBUG) { std::cout << "EOR" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
 		setZeroAndNegativeFlags(mAccumulator);
@@ -1625,7 +1648,7 @@ private:
 	void andWithMemoryOrAccIndX()
 	{
 		uint8_t lookupaddress = fetch() + mRegisterX;
-		uint8_t value = mMemory[mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8];
+		uint8_t value = mMemory[mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)];
 		mAccumulator = value & mAccumulator;
 		if (ISDEBUG) { std::cout << "AND" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
 		setZeroAndNegativeFlags(mAccumulator);
@@ -1634,7 +1657,7 @@ private:
 	void andWithMemoryOrAccIndY()
 	{
 		uint8_t lookupaddress = fetch();
-		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
+		uint8_t value = mMemory[(mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)) + mRegisterY];
 		mAccumulator = value & mAccumulator;
 		if (ISDEBUG) { std::cout << "AND" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
 		setZeroAndNegativeFlags(mAccumulator);
@@ -1645,7 +1668,7 @@ private:
 	void adcWithMemoryOrAccImmediate()
 	{
 		uint8_t value = fetch();
-		mAccumulator = add(value,mAccumulator, C, D);
+		mAccumulator = add(value, mAccumulator, C, D);
 		if (ISDEBUG) { std::cout << "ADC" << "\t" << "#" << (int)value; }
 	}
 
@@ -1653,56 +1676,56 @@ private:
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr];
-		mAccumulator = add(value,mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "ADC" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+		mAccumulator = add(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "ADC" << "\t" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(addr); }
 	}
 
 	void adcWithMemoryOrAccZeroPX()
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr + mRegisterX];
-		mAccumulator = add(value,mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "ADC" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
+		mAccumulator = add(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "ADC" << "\t" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(addr) << ",x"; }
 	}
 
 	void adcWithMemoryOrAccAbs()
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr];
-		mAccumulator = add(value,mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "ADC" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
+		mAccumulator = add(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "ADC" << "\t" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(addr); }
 	}
 
 	void adcWithMemoryOrAccAbsX()
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterX];
-		mAccumulator = add(value,mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "ADC" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
+		mAccumulator = add(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "ADC" << "\t" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(addr) << ",x"; }
 	}
 
 	void adcWithMemoryOrAccAbsY()
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterY];
-		mAccumulator = add(value,mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "ADC" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
+		mAccumulator = add(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "ADC" << "\t" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(addr) << ",y"; }
 	}
 
 	void adcWithMemoryOrAccIndX()
 	{
 		uint8_t lookupaddress = fetch() + mRegisterX;
-		uint8_t value = mMemory[mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8];
-		mAccumulator = add(value,mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "ADC" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
+		uint8_t value = mMemory[mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)];
+		mAccumulator = add(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "ADC" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(lookupaddress) << ",x)"; }
 	}
 
 	void adcWithMemoryOrAccIndY()
 	{
 		uint8_t lookupaddress = fetch();
-		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
-		mAccumulator = add(value,mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "ADC" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
+		uint8_t value = mMemory[(mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)) + mRegisterY];
+		mAccumulator = add(value, mAccumulator, C, D);
+		if (ISDEBUG) { std::cout << "ADC" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(lookupaddress) << "),y"; }
 	}
 
 	//SBC
@@ -1757,7 +1780,7 @@ private:
 	void sbcWithMemoryOrAccIndX()
 	{
 		uint8_t lookupaddress = fetch() + mRegisterX;
-		uint8_t value = mMemory[mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8];
+		uint8_t value = mMemory[mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)];
 		mAccumulator = sub(value, mAccumulator, C, D);
 		if (ISDEBUG) { std::cout << "SBC" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
 	}
@@ -1765,7 +1788,7 @@ private:
 	void sbcWithMemoryOrAccIndY()
 	{
 		uint8_t lookupaddress = fetch();
-		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
+		uint8_t value = mMemory[(mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)) + mRegisterY];
 		mAccumulator = sub(value, mAccumulator, C, D);
 		if (ISDEBUG) { std::cout << "SBC" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
 	}
@@ -1810,7 +1833,7 @@ private:
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterX];
-		if (ISDEBUG) {std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x";}
+		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
 		compareBase(val, value);
 	}
 
@@ -1818,7 +1841,7 @@ private:
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterY];
-		if (ISDEBUG) {std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y";}
+		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
 		compareBase(val, value);
 	}
 
@@ -1827,8 +1850,8 @@ private:
 		uint8_t lookupaddress = fetch();
 
 		//uint16_t addr = (mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY;
-		uint8_t value = mMemory[(mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY];
-		if (ISDEBUG) {std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y";}
+		uint8_t value = mMemory[(mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)) + mRegisterY];
+		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
 		compareBase(val, value);
 	}
 
@@ -1837,8 +1860,8 @@ private:
 		uint8_t lookupaddress = fetch() + mRegisterX;
 
 		//uint16_t addr = (mMemory[lookupaddress + mRegisterX] + mMemory[lookupaddress + mRegisterX + 1] << 8);
-		uint8_t value = mMemory[mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8];
-		if (ISDEBUG) {std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)";}
+		uint8_t value = mMemory[mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)];
+		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
 		compareBase(val, value);
 	}
 
@@ -1851,23 +1874,25 @@ private:
 		uint8_t value = mMemory[addr];
 		N = (value & 0x80) != 0;
 		V = (value & 0x40) != 0;
-		Z = value & mAccumulator == 0;
+		Z = (value & mAccumulator) == 0;
 		if (ISDEBUG) { std::cout << "BIT" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
 	}
 
+	//THIS is never used, delete or change code
 	void bitTestZeroPage()
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr];
 		N = (value & 0x80) != 0;
 		V = (value & 0x40) != 0;
-		Z = value & mAccumulator == 0;
+		Z = (value & mAccumulator) == 0;
 		if (ISDEBUG) { std::cout << "BIT" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
 	}
 
 
 
-	void branchNonZero() {
+	void branchNonZero()
+	{
 		int8_t fetchedByte = branchBase("BNE");
 		if (Z == 0)
 		{
@@ -1876,7 +1901,8 @@ private:
 		}
 	}
 
-	void branchCarrySet() {
+	void branchCarrySet()
+	{
 		int8_t fetchedByte = branchBase("BCS");
 		if (C == 1)
 		{
@@ -1885,7 +1911,8 @@ private:
 		}
 	}
 
-	void branchCarryClear() {
+	void branchCarryClear()
+	{
 		int8_t fetchedByte = branchBase("BCC");
 		if (C == 0)
 		{
@@ -1894,7 +1921,8 @@ private:
 		}
 	}
 
-	void branchZero() {
+	void branchZero()
+	{
 		int8_t fetchedByte = branchBase("BEQ");
 		if (Z == 1)
 		{
@@ -1903,7 +1931,8 @@ private:
 		}
 	}
 
-	void branchMinus() {
+	void branchMinus()
+	{
 		int8_t fetchedByte = branchBase("BMI");
 		if (N == 1)
 		{
@@ -1912,7 +1941,8 @@ private:
 		}
 	}
 
-	void branchPlus() {
+	void branchPlus()
+	{
 		int8_t fetchedByte = branchBase("BPL");
 		if (N == 0)
 		{
@@ -1921,7 +1951,8 @@ private:
 		}
 	}
 
-	void branchOverflowClear() {
+	void branchOverflowClear()
+	{
 		int8_t fetchedByte = branchBase("BVC");
 		if (V == 0)
 		{
@@ -1930,7 +1961,8 @@ private:
 		}
 	}
 
-	void branchOverflowSet() {
+	void branchOverflowSet()
+	{
 		int8_t fetchedByte = branchBase("BVS");
 		if (V == 1)
 		{
@@ -1939,14 +1971,15 @@ private:
 		}
 	}
 
-	int8_t branchBase(char const* instruction) {
+	int8_t branchBase(char const* instruction)
+	{
 		if (ISDEBUG) { std::cout << instruction; }
 		int8_t offset = fetch();
-		if (ISDEBUG) { std::cout << "\t" << (uint16_t)(mProgramCounter+offset); }
+		if (ISDEBUG) { std::cout << "\t" << (uint16_t)(mProgramCounter + offset); }
 		return offset;
 	}
 
-	void branchDebugPrint(std::string instruction, int8_t fetchedByte) 
+	void branchDebugPrint(std::string instruction, int8_t fetchedByte)
 	{
 		if (ISDEBUG)
 		{
@@ -1954,7 +1987,8 @@ private:
 		}
 	}
 
-	uint16_t jumpAbsolute() {
+	uint16_t jumpAbsolute()
+	{
 		//std::cout << "JMP (absolute) started, PC: " << mProgramCounter << std::endl;
 
 		uint16_t jumpAddress = fetch16();
@@ -1964,21 +1998,23 @@ private:
 		return jumpAddress;
 	}
 
-	uint16_t jumpAbsoluteSavingAddress() {
+	uint16_t jumpAbsoluteSavingAddress()
+	{
 		//std::cout << "JMP (absolute) started, PC: " << mProgramCounter << std::endl;
 
 		uint16_t jumpAddress = fetch16();
 		uint16_t savedPosition = mProgramCounter - 1; // address of end of current instruction
-		mMemory[stackOffset+mStackPointer] = ((savedPosition >> 8) & 0xFF);
+		mMemory[stackOffset + mStackPointer] = ((savedPosition >> 8) & 0xFF);
 		mStackPointer--;
-		mMemory[stackOffset+mStackPointer] = savedPosition & 0xFF;
+		mMemory[stackOffset + mStackPointer] = savedPosition & 0xFF;
 		mStackPointer--;
 		//std::cout << "New Address: " << jumpAddress << std::endl;
 		if (ISDEBUG) { std::cout << "JSR" << "\t" << "#" << jumpAddress; }
 		return jumpAddress;
 	}
 
-	uint16_t jumpIndirect() {
+	uint16_t jumpIndirect()
+	{
 		//std::cout << "JMP (indirect) started, PC: " << mProgramCounter << std::endl;
 
 		uint16_t lookupAddress = fetch16();
@@ -1991,7 +2027,8 @@ private:
 		return jumpAddress;
 	}
 
-	uint8_t loadIndirectX(const char* instruction) {
+	uint8_t loadIndirectX(const char* instruction)
+	{
 		uint8_t lookupAddress = fetch();
 
 		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << (int)lookupAddress << ",x)"; }
@@ -2009,7 +2046,8 @@ private:
 		return result;
 	}
 
-	uint8_t loadZeroPage(std::string instruction) {
+	uint8_t loadZeroPage(std::string instruction)
+	{
 		uint8_t addr = fetch();
 		uint8_t result = mMemory[addr];
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)addr; }
@@ -2017,14 +2055,16 @@ private:
 		return result;
 	}
 
-	uint8_t loadImmediate(std::string instruction) {
+	uint8_t loadImmediate(std::string instruction)
+	{
 		uint8_t result = fetch();
 		if (ISDEBUG) { std::cout << instruction << "\t" << "#" << (int)result; }
 		//std::cout << "Loading " << std::hex << static_cast<int>(result) << " into A" << std::endl;
 		return result;
 	}
 
-	uint8_t loadAbsolute(std::string instruction) {
+	uint8_t loadAbsolute(std::string instruction)
+	{
 		uint16_t addr = fetch16();
 		uint8_t result = mMemory[addr];
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)addr; }
@@ -2032,7 +2072,8 @@ private:
 		return result;
 	}
 
-	uint8_t loadIndirectY(std::string instruction) {
+	uint8_t loadIndirectY(std::string instruction)
+	{
 		uint8_t lookupAddress = fetch();
 		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << (int)lookupAddress << "),y"; }
 		//std::cout << "Lookup address: " << std::hex << static_cast<int>(lookupAddress) << ", y: " << std::hex << static_cast<int>(mRegisterY) << std::endl;
@@ -2045,7 +2086,8 @@ private:
 		return result;
 	}
 
-	uint8_t loadZeroPageX(std::string instruction) {
+	uint8_t loadZeroPageX(std::string instruction)
+	{
 		uint8_t base = fetch();
 		uint8_t	address = mRegisterX + base;
 		uint8_t result = mMemory[address];
@@ -2054,7 +2096,8 @@ private:
 		return result;
 	}
 
-	uint8_t loadZeroPageY(std::string instruction) {
+	uint8_t loadZeroPageY(std::string instruction)
+	{
 		uint8_t base = fetch();
 		uint8_t	address = mRegisterY + base;
 		uint8_t result = mMemory[address];
@@ -2063,7 +2106,8 @@ private:
 		return result;
 	}
 
-	uint8_t loadAbsoluteY(std::string instruction) {
+	uint8_t loadAbsoluteY(std::string instruction)
+	{
 		uint16_t base = fetch16();
 		uint8_t result = mMemory[base + mRegisterY];
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",y"; }
@@ -2071,7 +2115,8 @@ private:
 		return result;
 	}
 
-	uint8_t loadAbsoluteX(std::string instruction) {
+	uint8_t loadAbsoluteX(std::string instruction)
+	{
 		uint16_t base = fetch16();
 		uint8_t result = mMemory[base + mRegisterX];
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",x"; }
@@ -2083,7 +2128,8 @@ private:
 
 	//save instructions 
 
-	void saveIndirectY(std::string instruction, uint8_t value) {
+	void saveIndirectY(std::string instruction, uint8_t value)
+	{
 		uint8_t lookupAddress = fetch();
 		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << (int)lookupAddress << "),y"; }
 
@@ -2092,7 +2138,8 @@ private:
 		mMemory[address] = value;
 	}
 
-	void saveIndirectX(std::string instruction, uint8_t value) {
+	void saveIndirectX(std::string instruction, uint8_t value)
+	{
 		uint8_t lookupAddress = fetch();
 
 		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << (int)lookupAddress << ",x)"; }
@@ -2101,45 +2148,52 @@ private:
 		mMemory[address] = value;
 	}
 
-	void saveZeroPage(std::string instruction, uint8_t value) {
+	void saveZeroPage(std::string instruction, uint8_t value)
+	{
 		uint8_t addr = fetch();
 		mMemory[addr] = value;
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)addr; }
 	}
 
-	void saveAbsolute(std::string instruction, uint8_t value) {
+	void saveAbsolute(std::string instruction, uint8_t value)
+	{
 		uint16_t addr = fetch16();
 		mMemory[addr] = value;
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)addr; }
 	}
 
-	void saveZeroPageX(std::string instruction, uint8_t value) {
+	void saveZeroPageX(std::string instruction, uint8_t value)
+	{
 		uint8_t base = fetch();
 		uint8_t	address = mRegisterX + base;
 		mMemory[address] = value;
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",x"; }
 	}
 
-	void saveZeroPageY(std::string instruction, uint8_t value) {
+	void saveZeroPageY(std::string instruction, uint8_t value)
+	{
 		uint8_t base = fetch();
 		uint8_t	address = mRegisterY + base;
 		mMemory[address] = value;
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",y"; }
 	}
 
-	void saveAbsoluteY(std::string instruction, uint8_t value) {
+	void saveAbsoluteY(std::string instruction, uint8_t value)
+	{
 		uint16_t base = fetch16();
 		mMemory[base + mRegisterY] = value;
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",y"; }
 	}
 
-	void saveAbsoluteX(std::string instruction, uint8_t value) {
+	void saveAbsoluteX(std::string instruction, uint8_t value)
+	{
 		uint16_t base = fetch16();
 		mMemory[base + mRegisterX] = value;
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",x"; }
 	}
 
-	void setZeroAndNegativeFlags(uint8_t value) {
+	void setZeroAndNegativeFlags(uint8_t value)
+	{
 		Z = value == 0;
 		N = (value & 0x80) != 0;
 	}
@@ -2148,16 +2202,16 @@ private:
 class MOS6502Debug : public MOS6502
 {
 public:
-	uint8_t  getAccumulator()    { return mAccumulator; }
+	uint8_t  getAccumulator() { return mAccumulator; }
 	uint16_t getProgramCounter() { return mProgramCounter; }
-	uint8_t  getStackPointer()   { return mStackPointer; }
-	uint8_t  getRegisterX()      { return mRegisterX; }
-	uint8_t  getRegisterY()      { return mRegisterY; }
+	uint8_t  getStackPointer() { return mStackPointer; }
+	uint8_t  getRegisterX() { return mRegisterX; }
+	uint8_t  getRegisterY() { return mRegisterY; }
 
 	uint8_t  getMemory(uint16_t addr) { return mMemory[addr]; }
 };
 
-bool testBasicOps()
+static bool TestBasicOps()
 {
 	bool isOk = true;
 
@@ -2186,20 +2240,20 @@ bool testBasicOps()
 	 0x30, 0x03, 0x4C, 0x9D, 0x10, 0x60
 	};
 
-	MOS6502Debug cpu;
-	cpu.loadProgram(program, sizeof(program), 0x1000);
+	auto cpu = std::make_shared<MOS6502Debug>();
+	cpu->loadProgram(program, sizeof(program), 0x1000);
 
 	if (isOk)
 	{
 		// ; test ADC_XY16
-		cpu.executeFrom(0x1000);
+		cpu->executeFrom(0x1000);
 
-		if (cpu.getMemory(0x05) != 0x04)
+		if (cpu->getMemory(0x05) != 0x04)
 		{
 			isOk = false;
 		}
 
-		if (cpu.getMemory(0x06) != 0x79)
+		if (cpu->getMemory(0x06) != 0x79)
 		{
 			isOk = false;
 		}
@@ -2209,27 +2263,28 @@ bool testBasicOps()
 
 	if (isOk)
 	{
-		cpu.executeFrom(0x1019);
+		cpu->executeFrom(0x1019);
 
-		if (cpu.getMemory(0x03) != 0xEE)
+		if (cpu->getMemory(0x03) != 0xEE)
 		{
 			isOk = false;
 		}
 
-		if (cpu.getMemory(0x04) != 0x02)
+		if (cpu->getMemory(0x04) != 0x02)
 		{
 			isOk = false;
 		}
 
 		std::cout << "Test MUL_XY16:" << ((isOk) ? "OK" : "FAIL") << "\n";
-    }
+	}
 
 	return(isOk);
 }
 
-int main() {
+int main()
+{
 
-	testBasicOps();
+	TestBasicOps();
 
 	uint8_t program[] = {
 		0xE8,
