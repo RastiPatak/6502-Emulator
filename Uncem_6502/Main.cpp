@@ -992,60 +992,8 @@ private:
 		return resultingvalue;                                //I return the value 
 	}
 
-	void OutForComAndMode(std::string instruction, std::string addrmode, uint16_t addr)
-	{
-		// addrmode should be made to enum, if you wish. This version is already working one, but i didnt implement it widely
-		if (ISDEBUG)
-		{
-			if (addrmode == "IMD")
-			{
-				std::cout << instruction << "\t" << "#" << (int)addr;
-			}
-			else if (addrmode == "ZPG")
-			{
-				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr;
-			}
-			else if (addrmode == "ZPX")
-			{
-				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x";
-			}
-			else if (addrmode == "ZPY")
-			{
-				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",y";
-			}
-			else if (addrmode == "ABS")
-			{
-				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr;
-			}
-			else if (addrmode == "ABX")
-			{
-				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x";
-			}
-			else if (addrmode == "ABY")
-			{
-				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y";
-			}
-			else if (addrmode == "INX")
-			{
-				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x)";
-			}
-			else if (addrmode == "INY")
-			{
-				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << "),y";
-			}
-			else if (addrmode == "A")
-			{
-				std::cout << instruction << "\t" << "A";
-			}
-			else
-			{
-				std::cout << instruction << "\t";
-			}
-		}
-	}
-
 	//VERSION OF UNIFIED OUTPUT FUNCTION WITH ENUMS USED
-	void OutForComAndModeENUM(std::string instruction, addressMode mode, uint16_t addr)
+	void OutForComAndModeENUM(const char* instruction, addressMode mode, uint16_t addr)
 	{
 		// addrmode should be made to enum, if you wish. This version is already working one, but i didnt implement it widely
 		if (ISDEBUG)
@@ -1053,31 +1001,31 @@ private:
 			switch (mode)
 			{
 			case IMD:
-				std::cout << instruction << "\t" << "#" << (int)addr;
+				std::cout << instruction << "\t" << "#" << "$" << std::hex << std::setw(2) << std::setfill('0') << addr;
 				break;
 			case ZPG:
-				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr;
+				std::cout << instruction << "\t" << "$" << std::hex << std::setw(2) << std::setfill('0') << addr;
 				break;
 			case ZPX:
-				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x";
+				std::cout << instruction << "\t" << "$" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x";
 				break;
 			case ZPY:
-				std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",y";
+				std::cout << instruction << "\t" << "$" << std::hex << std::setw(2) << std::setfill('0') << addr << ",y";
 				break;
 			case ABS:
-				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr;
+				std::cout << instruction << "\t" << "$" << std::hex << std::setw(4) << std::setfill('0') << addr;
 				break;
 			case ABX:
-				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x";
+				std::cout << instruction << "\t" << "$" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x";
 				break;
 			case ABY:
-				std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y";
+				std::cout << instruction << "\t" << "$" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y";
 				break;
 			case INDX:
-				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x)";
+				std::cout << instruction << "\t" << "(" << "$" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x)";
 				break;
 			case INDY:
-				std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << addr << "),y";
+				std::cout << instruction << "\t" << "(" << "$" << std::hex << std::setw(4) << std::setfill('0') << addr << "),y";
 				break;
 			case A:
 				std::cout << instruction << "\t" << "A";
@@ -1798,14 +1746,14 @@ private:
 
 
 
-	void compareImmediate(std::string instruction, uint8_t val)
+	void compareImmediate(const char* instruction, uint8_t val)
 	{
 		uint8_t value = fetch();
 		if (ISDEBUG) { std::cout << instruction << "\t" << "#" << "$" << std::hex << std::setw(2) << std::setfill('0') << (uint16_t)value; }
 		compareBase(val, value);
 	}
 
-	void compareAbsolute(std::string instruction, uint8_t val)
+	void compareAbsolute(const char* instruction, uint8_t val)
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr];
@@ -1813,7 +1761,7 @@ private:
 		compareBase(val, value);
 	}
 
-	void compareZeroPage(std::string instruction, uint8_t val)
+	void compareZeroPage(const char* instruction, uint8_t val)
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr];
@@ -1821,7 +1769,7 @@ private:
 		compareBase(val, value);
 	}
 
-	void compareZeroPageX(std::string instruction, uint8_t val)
+	void compareZeroPageX(const char* instruction, uint8_t val)
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr + mRegisterX];
@@ -1829,7 +1777,7 @@ private:
 		compareBase(val, value);
 	}
 
-	void compareAbsoluteX(std::string instruction, uint8_t val)
+	void compareAbsoluteX(const char* instruction, uint8_t val)
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterX];
@@ -1837,7 +1785,7 @@ private:
 		compareBase(val, value);
 	}
 
-	void compareAbsoluteY(std::string instruction, uint8_t val)
+	void compareAbsoluteY(const char* instruction, uint8_t val)
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterY];
@@ -1845,7 +1793,7 @@ private:
 		compareBase(val, value);
 	}
 
-	void compareIndY(std::string instruction, uint8_t val)
+	void compareIndY(const char* instruction, uint8_t val)
 	{
 		uint8_t lookupaddress = fetch();
 
@@ -1855,7 +1803,7 @@ private:
 		compareBase(val, value);
 	}
 
-	void compareIndX(std::string instruction, uint8_t val)
+	void compareIndX(const char* instruction, uint8_t val)
 	{
 		uint8_t lookupaddress = fetch() + mRegisterX;
 
@@ -1979,7 +1927,7 @@ private:
 		return offset;
 	}
 
-	void branchDebugPrint(std::string instruction, int8_t fetchedByte)
+	void branchDebugPrint(const char* instruction, int8_t fetchedByte)
 	{
 		if (ISDEBUG)
 		{
@@ -2046,7 +1994,7 @@ private:
 		return result;
 	}
 
-	uint8_t loadZeroPage(std::string instruction)
+	uint8_t loadZeroPage(const char* instruction)
 	{
 		uint8_t addr = fetch();
 		uint8_t result = mMemory[addr];
@@ -2055,7 +2003,7 @@ private:
 		return result;
 	}
 
-	uint8_t loadImmediate(std::string instruction)
+	uint8_t loadImmediate(const char* instruction)
 	{
 		uint8_t result = fetch();
 		if (ISDEBUG) { std::cout << instruction << "\t" << "#" << (int)result; }
@@ -2063,7 +2011,7 @@ private:
 		return result;
 	}
 
-	uint8_t loadAbsolute(std::string instruction)
+	uint8_t loadAbsolute(const char* instruction)
 	{
 		uint16_t addr = fetch16();
 		uint8_t result = mMemory[addr];
@@ -2072,7 +2020,7 @@ private:
 		return result;
 	}
 
-	uint8_t loadIndirectY(std::string instruction)
+	uint8_t loadIndirectY(const char* instruction)
 	{
 		uint8_t lookupAddress = fetch();
 		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << (int)lookupAddress << "),y"; }
@@ -2086,7 +2034,7 @@ private:
 		return result;
 	}
 
-	uint8_t loadZeroPageX(std::string instruction)
+	uint8_t loadZeroPageX(const char* instruction)
 	{
 		uint8_t base = fetch();
 		uint8_t	address = mRegisterX + base;
@@ -2096,7 +2044,7 @@ private:
 		return result;
 	}
 
-	uint8_t loadZeroPageY(std::string instruction)
+	uint8_t loadZeroPageY(const char* instruction)
 	{
 		uint8_t base = fetch();
 		uint8_t	address = mRegisterY + base;
@@ -2106,7 +2054,7 @@ private:
 		return result;
 	}
 
-	uint8_t loadAbsoluteY(std::string instruction)
+	uint8_t loadAbsoluteY(const char* instruction)
 	{
 		uint16_t base = fetch16();
 		uint8_t result = mMemory[base + mRegisterY];
@@ -2115,7 +2063,7 @@ private:
 		return result;
 	}
 
-	uint8_t loadAbsoluteX(std::string instruction)
+	uint8_t loadAbsoluteX(const char* instruction)
 	{
 		uint16_t base = fetch16();
 		uint8_t result = mMemory[base + mRegisterX];
@@ -2128,7 +2076,7 @@ private:
 
 	//save instructions 
 
-	void saveIndirectY(std::string instruction, uint8_t value)
+	void saveIndirectY(const char* instruction, uint8_t value)
 	{
 		uint8_t lookupAddress = fetch();
 		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << (int)lookupAddress << "),y"; }
@@ -2138,7 +2086,7 @@ private:
 		mMemory[address] = value;
 	}
 
-	void saveIndirectX(std::string instruction, uint8_t value)
+	void saveIndirectX(const char* instruction, uint8_t value)
 	{
 		uint8_t lookupAddress = fetch();
 
@@ -2148,21 +2096,21 @@ private:
 		mMemory[address] = value;
 	}
 
-	void saveZeroPage(std::string instruction, uint8_t value)
+	void saveZeroPage(const char* instruction, uint8_t value)
 	{
 		uint8_t addr = fetch();
 		mMemory[addr] = value;
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)addr; }
 	}
 
-	void saveAbsolute(std::string instruction, uint8_t value)
+	void saveAbsolute(const char* instruction, uint8_t value)
 	{
 		uint16_t addr = fetch16();
 		mMemory[addr] = value;
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)addr; }
 	}
 
-	void saveZeroPageX(std::string instruction, uint8_t value)
+	void saveZeroPageX(const char* instruction, uint8_t value)
 	{
 		uint8_t base = fetch();
 		uint8_t	address = mRegisterX + base;
@@ -2170,7 +2118,7 @@ private:
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",x"; }
 	}
 
-	void saveZeroPageY(std::string instruction, uint8_t value)
+	void saveZeroPageY(const char* instruction, uint8_t value)
 	{
 		uint8_t base = fetch();
 		uint8_t	address = mRegisterY + base;
@@ -2178,14 +2126,14 @@ private:
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",y"; }
 	}
 
-	void saveAbsoluteY(std::string instruction, uint8_t value)
+	void saveAbsoluteY(const char* instruction, uint8_t value)
 	{
 		uint16_t base = fetch16();
 		mMemory[base + mRegisterY] = value;
 		if (ISDEBUG) { std::cout << instruction << "\t" << (int)base << ",y"; }
 	}
 
-	void saveAbsoluteX(std::string instruction, uint8_t value)
+	void saveAbsoluteX(const char* instruction, uint8_t value)
 	{
 		uint16_t base = fetch16();
 		mMemory[base + mRegisterX] = value;
