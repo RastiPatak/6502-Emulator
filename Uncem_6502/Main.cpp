@@ -1733,64 +1733,64 @@ private:
 	void sbcWithMemoryOrAccImmediate()
 	{
 		uint8_t value = fetch();
-		mAccumulator = sub(value, mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "SBC" << "\t" << "#" << (int)value; }
+		mAccumulator = sub(mAccumulator, value, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << "#" << "$" << std::hex << std::setw(2) << std::setfill('0') << (uint16_t)value; }
 	}
 
 	void sbcWithMemoryOrAccZeroP()
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr];
-		mAccumulator = sub(value, mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "SBC" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+		mAccumulator = sub(mAccumulator, value, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << "$" << std::hex << std::setw(2) << std::setfill('0') << (uint16_t)addr; }
 	}
 
 	void sbcWithMemoryOrAccZeroPX()
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr + mRegisterX];
-		mAccumulator = add(value, mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "SBC" << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
+		mAccumulator = add(mAccumulator, value, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << "$" << std::hex << std::setw(2) << std::setfill('0') << (uint16_t)addr << ",x"; }
 	}
 
 	void sbcWithMemoryOrAccAbs()
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr];
-		mAccumulator = sub(value, mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "SBC" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
+		mAccumulator = sub(mAccumulator, value, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << "$" << std::hex << std::setw(4) << std::setfill('0') << addr; }
 	}
 
 	void sbcWithMemoryOrAccAbsX()
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterX];
-		mAccumulator = sub(value, mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "SBC" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
+		mAccumulator = sub(mAccumulator, value, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << "$" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
 	}
 
 	void sbcWithMemoryOrAccAbsY()
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterY];
-		mAccumulator = sub(value, mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "SBC" << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
+		mAccumulator = sub(mAccumulator, value, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << "$" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
 	}
 
 	void sbcWithMemoryOrAccIndX()
 	{
 		uint8_t lookupaddress = fetch() + mRegisterX;
 		uint8_t value = mMemory[mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)];
-		mAccumulator = sub(value, mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "SBC" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
+		mAccumulator = sub(mAccumulator, value, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << "(" << "$" << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)lookupaddress << ",x)"; }
 	}
 
 	void sbcWithMemoryOrAccIndY()
 	{
 		uint8_t lookupaddress = fetch();
 		uint8_t value = mMemory[(mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)) + mRegisterY];
-		mAccumulator = sub(value, mAccumulator, C, D);
-		if (ISDEBUG) { std::cout << "SBC" << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
+		mAccumulator = sub(mAccumulator, value, C, D);
+		if (ISDEBUG) { std::cout << "SBC" << "\t" << "(" << "$" << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)lookupaddress << "),y"; }
 	}
 
 	//"VAL" IN ALL COMPARE OPERATIONS IS VALUE OF THE CHOSEN REGISTER AND IS NOT THE VALUE IT IS BEING COMPARED WITH.
@@ -1801,7 +1801,7 @@ private:
 	void compareImmediate(std::string instruction, uint8_t val)
 	{
 		uint8_t value = fetch();
-		if (ISDEBUG) { std::cout << instruction << "\t" << "#" << (int)value; }
+		if (ISDEBUG) { std::cout << instruction << "\t" << "#" << "$" << std::hex << std::setw(2) << std::setfill('0') << (uint16_t)value; }
 		compareBase(val, value);
 	}
 
@@ -1809,7 +1809,7 @@ private:
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr];
-		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr; }
+		if (ISDEBUG) { std::cout << instruction << "\t" << "$" << std::hex << std::setw(4) << std::setfill('0') << addr; }
 		compareBase(val, value);
 	}
 
@@ -1817,7 +1817,7 @@ private:
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr];
-		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr; }
+		if (ISDEBUG) { std::cout << instruction << "\t" << "$" << std::hex << std::setw(2) << std::setfill('0') << (uint16_t)addr; }
 		compareBase(val, value);
 	}
 
@@ -1825,7 +1825,7 @@ private:
 	{
 		uint8_t addr = fetch();
 		uint8_t value = mMemory[addr + mRegisterX];
-		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(2) << std::setfill('0') << addr << ",x"; }
+		if (ISDEBUG) { std::cout << instruction << "\t" << "$" << std::hex << std::setw(2) << std::setfill('0') << (uint16_t)addr << ",x"; }
 		compareBase(val, value);
 	}
 
@@ -1833,7 +1833,7 @@ private:
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterX];
-		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
+		if (ISDEBUG) { std::cout << instruction << "\t" << "$" << std::hex << std::setw(4) << std::setfill('0') << addr << ",x"; }
 		compareBase(val, value);
 	}
 
@@ -1841,7 +1841,7 @@ private:
 	{
 		uint16_t addr = fetch16();
 		uint8_t value = mMemory[addr + mRegisterY];
-		if (ISDEBUG) { std::cout << instruction << "\t" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
+		if (ISDEBUG) { std::cout << instruction << "\t" << "$" << std::hex << std::setw(4) << std::setfill('0') << addr << ",y"; }
 		compareBase(val, value);
 	}
 
@@ -1851,7 +1851,7 @@ private:
 
 		//uint16_t addr = (mMemory[lookupaddress] + mMemory[lookupaddress + 1] << 8) + mRegisterY;
 		uint8_t value = mMemory[(mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)) + mRegisterY];
-		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << "),y"; }
+		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << "$" << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)lookupaddress << "),y"; }
 		compareBase(val, value);
 	}
 
@@ -1861,7 +1861,7 @@ private:
 
 		//uint16_t addr = (mMemory[lookupaddress + mRegisterX] + mMemory[lookupaddress + mRegisterX + 1] << 8);
 		uint8_t value = mMemory[mMemory[lookupaddress] + (mMemory[lookupaddress + 1] << 8)];
-		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << std::hex << std::setw(4) << std::setfill('0') << lookupaddress << ",x)"; }
+		if (ISDEBUG) { std::cout << instruction << "\t" << "(" << "$" << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)lookupaddress << ",x)"; }
 		compareBase(val, value);
 	}
 
@@ -2220,11 +2220,11 @@ static bool TestBasicOps()
 	 0x02, 0x00, 0xA9, 0x81, 0x8D, 0x03, 0x00, 0xA9,
 	 0x73, 0x8D, 0x04, 0x00, 0x18, 0x20, 0x44, 0x10,
 	 0xFF, 0xA9, 0xFA, 0x8D, 0x01, 0x00, 0xA9, 0x03, //first was 0xea but changed to 0xff (halt)
-	 0x8D, 0x02, 0x00, 0x20, 0x51, 0x10, 0xFF, 0xA9,
+	 0x8D, 0x02, 0x00, 0x20, 0x51, 0x10, 0xFF, 0xA9, // seventh was ea but is now ff 
 	 0x07, 0x8D, 0x01, 0x00, 0xA9, 0x06, 0x8D, 0x02,
 	 0x00, 0x20, 0x74, 0x10, 0xEA, 0xA9, 0x0A, 0x8D,
 	 0x01, 0x00, 0xA9, 0x05, 0x8D, 0x02, 0x00, 0x20,
-	 0x91, 0x10, 0xEA, 0x00, 0xA5, 0x01, 0x65, 0x03,
+	 0x91, 0x10, 0xFF, 0x00, 0xA5, 0x01, 0x65, 0x03, // third was EA, now is 0xff
 	 0x85, 0x05, 0xA5, 0x02, 0x65, 0x04, 0x85, 0x06,
 	 0x60, 0xA9, 0x00, 0x85, 0x03, 0x85, 0x04, 0xA5,
 	 0x01, 0xC9, 0x00, 0xF0, 0x16, 0xA5, 0x02, 0xC9,
@@ -2237,7 +2237,7 @@ static bool TestBasicOps()
 	 0x60, 0xA9, 0x00, 0x85, 0x03, 0xA5, 0x01, 0x85,
 	 0x04, 0xC5, 0x02, 0x30, 0x10, 0xE6, 0x03, 0xA5,
 	 0x04, 0x38, 0xE5, 0x02, 0x85, 0x04, 0xC5, 0x02,
-	 0x30, 0x03, 0x4C, 0x9D, 0x10, 0x60
+	 0x30, 0x03, 0x4C, 0x9D, 0x10, 0x60, 0xFF
 	};
 
 	auto cpu = std::make_shared<MOS6502Debug>();
@@ -2276,6 +2276,23 @@ static bool TestBasicOps()
 		}
 
 		std::cout << "Test MUL_XY16:" << ((isOk) ? "OK" : "FAIL") << "\n";
+	}
+
+	if (isOk)
+	{
+		cpu->executeFrom(0x1035);
+
+		if (cpu->getMemory(0x03) != 0x02)
+		{
+			isOk = false;
+		}
+
+		if (cpu->getMemory(0x04) != 0x00)
+		{
+			isOk = false;
+		}
+
+		std::cout << "Test DIV_XY:" << ((isOk) ? "OK" : "FAIL") << "\n";
 	}
 
 	return(isOk);
