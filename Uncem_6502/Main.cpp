@@ -1,5 +1,10 @@
 #include <iostream>
 #include <iomanip>
+#include <stdint.h>
+#include <memory>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 enum OpCode
 {
@@ -965,12 +970,12 @@ private:
 		uint8_t resultingvalue = (value >> 1) | (C ? 0x80 : 0); //I rotate the entered value by 1 position right, replacing the left-most bit of the ROTATED VALUE with carry (either 1 or 0)
 		C = value & 0x1;                                      //I store the bit that disappears due to shifting of the number in the carry flag
 		setZeroAndNegativeFlags(resultingvalue);              //I also set the correct flags if the resulting value after shifting appears to be zero or negative
-		return resultingvalue;                                //I return the value 
+		return resultingvalue;                                //I return the value
 	}
 
 	uint8_t rotateleft(uint8_t value)
 	{
-		uint8_t resultingvalue = (value << 1) | (C ? 1 : 0);  //I rotate the entered value 1 position left, replacing the right-most bit of the ROTATED VALUE with value of carry 
+		uint8_t resultingvalue = (value << 1) | (C ? 1 : 0);  //I rotate the entered value 1 position left, replacing the right-most bit of the ROTATED VALUE with value of carry
 		C = value & 0x80;                                     //I store the left-most bit that disappears due to shifting into carry flag
 		setZeroAndNegativeFlags(resultingvalue);              //I check if the value is negative or zero
 		return resultingvalue;                                //I return the value
@@ -989,7 +994,7 @@ private:
 		uint8_t resultingvalue = value >> 1;                  //I rotate the entered value by 1 position right, replacing the left-most bit of the ROTATED VALUE with 0
 		C = value & 0x1;                                      //I store the bit that disappears due to shifting of the number in the carry flag
 		setZeroAndNegativeFlags(resultingvalue);              //I also set the correct flags if the resulting value after shifting appears to be zero or negative
-		return resultingvalue;                                //I return the value 
+		return resultingvalue;                                //I return the value
 	}
 
 	//VERSION OF UNIFIED OUTPUT FUNCTION WITH ENUMS USED
@@ -2074,7 +2079,7 @@ private:
 
 
 
-	//save instructions 
+	//save instructions
 
 	void saveIndirectY(const char* instruction, uint8_t value)
 	{
@@ -2168,7 +2173,7 @@ static bool TestBasicOps()
 	 0x02, 0x00, 0xA9, 0x81, 0x8D, 0x03, 0x00, 0xA9,
 	 0x73, 0x8D, 0x04, 0x00, 0x18, 0x20, 0x44, 0x10,
 	 0xFF, 0xA9, 0xFA, 0x8D, 0x01, 0x00, 0xA9, 0x03, //first was 0xea but changed to 0xff (halt)
-	 0x8D, 0x02, 0x00, 0x20, 0x51, 0x10, 0xFF, 0xA9, // seventh was ea but is now ff 
+	 0x8D, 0x02, 0x00, 0x20, 0x51, 0x10, 0xFF, 0xA9, // seventh was ea but is now ff
 	 0x07, 0x8D, 0x01, 0x00, 0xA9, 0x06, 0x8D, 0x02,
 	 0x00, 0x20, 0x74, 0x10, 0xEA, 0xA9, 0x0A, 0x8D,
 	 0x01, 0x00, 0xA9, 0x05, 0x8D, 0x02, 0x00, 0x20,
@@ -2295,6 +2300,7 @@ int main()
 		0x45
 	};
 
+
 	auto cpu = std::make_shared<MOS6502>();
 	cpu->loadProgram(program, sizeof(program), 0x0000);
 	cpu->loadProgram(startingB0, sizeof(startingB0), 0x00B0);
@@ -2305,4 +2311,43 @@ int main()
 	cpu->loadProgram(threeProgram, sizeof(threeProgram), 0x0150);
 	cpu->loadProgram(memory, sizeof(memory), 0x0A24);
 	cpu->execute();
+}
+
+struct ConfigData {
+	std::string startingAddr;
+	bool debug;
+	std::string breakpointAddr;
+};
+
+bool readFile(const std::string& filename, ConfigData *data) {
+	std::ifstream file(filename);
+
+	if (!file.is_open()) {
+		std::cerr << "Error opening file: " << filename << std::endl;
+		return false;
+	}
+
+	std::string line;
+	while (std::getline(file, line)) {
+		std::istringstream iss(line);
+		std::string key;
+
+		if (!(iss >> key)) {
+			continue;
+		}
+
+		if (key == "ProgramStartingAddress:") {
+			iss >> data->startingAddr;
+		} else if (key == "Debug:") {
+			std::string debugStr;
+			iss >> debugStr;
+			data->debug = (debugStr == "true");
+		} else if (key == "Breakpoint:") {
+			iss >> data->breakpointAddr;
+		}
+	}
+
+	file.close();
+
+	return true;
 }
