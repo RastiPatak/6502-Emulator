@@ -5,9 +5,44 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <bitset>
+
+#define printBinary(value) std::cout << std::bitset<8>(value);
+#define printBinary16(value) std::cout << std::bitset<16>(value);
+#define printHexadecimal(value) std::cout << std::hex << value;
+#define printDecimal(value) std::cout << value;
+#define printChar(value) std::cout << static_cast<char>(value);
 
 enum OpCode
 {
+	//Print Instructions
+	PPB = 0x02,
+	PPH = 0x03,
+	PPD = 0x07,
+	PPC = 0x0B,
+
+	PAB = 0x12,
+	PAH = 0x13,
+	PAD = 0x17,
+	PAC = 0x1B,
+
+	PXB = 0x22,
+	PXH = 0x23,
+	PXD = 0x27,
+	PXC = 0x2B,
+
+	PBB = 0x32,
+	PBH = 0x33,
+	PBD = 0x37,
+	PBC = 0x3B,
+
+	PZB = 0x42,
+	PZH = 0x43,
+	PZD = 0x47,
+	PZC = 0x4B,
+
+
+
 	BRK = 0,
 	JMPAbs = 0x4C,
 	JMPInd = 0x6C,
@@ -304,6 +339,67 @@ protected:
 		}
 		switch (opcode)
 		{
+		case PPB:
+			printBinary16(mProgramCounter);
+			break;
+		case PPH:
+			printHexadecimal(mProgramCounter);
+			break;
+		case PPD:
+			printDecimal(mProgramCounter);
+			break;
+		case PPC:
+			printChar(mProgramCounter);
+			break;
+		case PAB:
+			printBinary(mAccumulator);
+			break;
+		case PAH:
+			printHexadecimal(mAccumulator);
+			break;
+		case PAD:
+			printDecimal(mAccumulator);
+			break;
+		case PAC:
+			printChar(mAccumulator);
+			break;
+		case PXB:
+			printBinary(mRegisterX);
+			break;
+		case PXH:
+			printHexadecimal(mRegisterX);
+			break;
+		case PXD:
+			printDecimal(mRegisterX);
+			break;
+		case PXC:
+			printChar(mRegisterX);
+			break;
+		case PBB:
+			printBinary(mMemory[fetch16()]);
+			break;
+		case PBH:
+			printHexadecimal(mMemory[fetch16()]);
+			break;
+		case PBD:
+			printDecimal(mMemory[fetch16()]);
+			break;
+		case PBC:
+			printChar(mMemory[fetch16()]);
+			break;
+		case PZB:
+			printBinary(mMemory[fetch()]);
+			break;
+		case PZH:
+			printHexadecimal(mMemory[fetch()]);
+			break;
+		case PZD:
+			printDecimal(mMemory[fetch()]);
+			break;
+		case PZC:
+			printChar(mMemory[fetch()]);
+			break;
+
 		case JMPAbs:
 			mProgramCounter = jumpAbsolute();
 			break;
@@ -896,7 +992,6 @@ private:
 		mStackPointer--;
 		if (ISDEBUG) { std::cout << "BRK" << "\t"; }
 	}
-
 
 
 	void incrementZeroPage()
