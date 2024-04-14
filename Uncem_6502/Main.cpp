@@ -5,9 +5,44 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <bitset>
+
+#define printBinary(value) std::cout << std::bitset<8>(value)
+#define printBinary16(value) std::cout << std::bitset<16>(value)
+#define printHexadecimal(value) std::cout << std::hex << static_cast<int>(value)
+#define printDecimal(value) std::cout << std::dec << static_cast<int>(value)
+#define printChar(value) std::cout << static_cast<char>(value)
 
 enum OpCode
 {
+	//Print Instructions
+	PPB = 0x02,
+	PPH = 0x03,
+	PPD = 0x07,
+	PPC = 0x0B,
+
+	PAB = 0x12,
+	PAH = 0x13,
+	PAD = 0x17,
+	PAC = 0x1B,
+
+	PXB = 0x22,
+	PXH = 0x23,
+	PXD = 0x27,
+	PXC = 0x2B,
+
+	PBB = 0x32,
+	PBH = 0x33,
+	PBD = 0x37,
+	PBC = 0x3B,
+
+	PZB = 0x42,
+	PZH = 0x43,
+	PZD = 0x47,
+	PZC = 0x4B,
+
+
+
 	BRK = 0,
 	JMPAbs = 0x4C,
 	JMPInd = 0x6C,
@@ -239,11 +274,11 @@ public:
 		memcpy(mMemory + offset, program, size);
 	}
 
-	void reset()
+	/*void reset()
 	{
 		mProgramCounter = 0xFFFE;
 		mProgramCounter = fetch16();
-	}
+	}*/
 
 	void executeFrom(uint16_t start)
 	{
@@ -251,7 +286,7 @@ public:
 		while (true)
 		{
 			uint8_t opcode = fetch();
-			if (opcode == HALT) { return; }
+			if (opcode == BRK) { return; }
 			if (!executeOpcode((OpCode)opcode))
 			{
 				printMemory();
@@ -263,17 +298,11 @@ public:
 
 	void execute()
 	{
-		// execute from current mProgramCounter
 		while (true)
 		{
 			uint8_t opcode = fetch();
-			if (opcode == HALT) { return; }
-			if (!executeOpcode((OpCode)opcode))
-			{
-				printMemory();
-				std::cerr << "Unknown opcode: " << std::hex << static_cast<int>(opcode) << std::endl;
-				return;
-			}
+			executeOpcode((OpCode)opcode);
+			if (opcode == BRK) break;
 		}
 	}
 
@@ -304,6 +333,67 @@ protected:
 		}
 		switch (opcode)
 		{
+		case PPB:
+			printBinary16(mProgramCounter);
+			break;
+		case PPH:
+			printHexadecimal(mProgramCounter);
+			break;
+		case PPD:
+			printDecimal(mProgramCounter);
+			break;
+		case PPC:
+			printChar(mProgramCounter);
+			break;
+		case PAB:
+			printBinary(mAccumulator);
+			break;
+		case PAH:
+			printHexadecimal(mAccumulator);
+			break;
+		case PAD:
+			printDecimal(mAccumulator);
+			break;
+		case PAC:
+			printChar(mAccumulator);
+			break;
+		case PXB:
+			printBinary(mRegisterX);
+			break;
+		case PXH:
+			printHexadecimal(mRegisterX);
+			break;
+		case PXD:
+			printDecimal(mRegisterX);
+			break;
+		case PXC:
+			printChar(mRegisterX);
+			break;
+		case PBB:
+			printBinary(mMemory[fetch16()]);
+			break;
+		case PBH:
+			printHexadecimal(mMemory[fetch16()]);
+			break;
+		case PBD:
+			printDecimal(mMemory[fetch16()]);
+			break;
+		case PBC:
+			printChar(mMemory[fetch16()]);
+			break;
+		case PZB:
+			printBinary(mMemory[fetch()]);
+			break;
+		case PZH:
+			printHexadecimal(mMemory[fetch()]);
+			break;
+		case PZD:
+			printDecimal(mMemory[fetch()]);
+			break;
+		case PZC:
+			printChar(mMemory[fetch()]);
+			break;
+
 		case JMPAbs:
 			mProgramCounter = jumpAbsolute();
 			break;
@@ -896,7 +986,6 @@ private:
 		mStackPointer--;
 		if (ISDEBUG) { std::cout << "BRK" << "\t"; }
 	}
-
 
 
 	void incrementZeroPage()
@@ -2254,62 +2343,24 @@ static bool TestBasicOps()
 int main()
 {
 
-	TestBasicOps();
+	//TestBasicOps();
 
-	uint8_t program[] = {
-		0xE8,
-		0x50, 0x00,
-		0xA9, 0x09,
-		0xE8,
-		0xA5, 0x40,
-		0xE8,
-		0xA1, 0xF0,
-		0xC8,
-		0xB1, 0xB0,
-		0xE0, 0x09,
-		0x6C, 0x20, 0x01
-	};
+	std::streampos size;
+	char* program = nullptr;
 
-	uint8_t startingB0[] = {
-		0x41, 0x08
-	};
-
-	uint8_t starting0842[] = {
-		0xAB
-	};
-
-	uint8_t startingF2[] = {
-		0x00, 0x05
-	};
-
-	uint8_t starting0500[] = {
-		0xBB
-	};
-
-	uint8_t twoProgram[] = {
-		0x50, 0x01
-	};
-
-	uint8_t threeProgram[] = {
-		0xE8,
-		0xE8,
-		0xBD, 0x20, 0x0A
-	};
-
-	uint8_t memory[] = {
-		0x45
-	};
-
+	std::ifstream file("Program.bin", std::ios::in | std::ios::binary | std::ios::ate);
+	if (file.is_open())
+	{
+		size = file.tellg();
+		program = new char[size];
+		file.seekg(0, std::ios::beg);
+		file.read(program, size);
+		file.close();
+	}
 
 	auto cpu = std::make_shared<MOS6502>();
-	cpu->loadProgram(program, sizeof(program), 0x0000);
-	cpu->loadProgram(startingB0, sizeof(startingB0), 0x00B0);
-	cpu->loadProgram(starting0842, sizeof(starting0842), 0x0842);
-	cpu->loadProgram(startingF2, sizeof(startingF2), 0x00F2);
-	cpu->loadProgram(starting0500, sizeof(starting0500), 0x0500);
-	cpu->loadProgram(twoProgram, sizeof(twoProgram), 0x0120);
-	cpu->loadProgram(threeProgram, sizeof(threeProgram), 0x0150);
-	cpu->loadProgram(memory, sizeof(memory), 0x0A24);
+	cpu->ISDEBUG = false;
+	cpu->loadProgram((uint8_t*)program, size, 0x0000);
 	cpu->execute();
 }
 
