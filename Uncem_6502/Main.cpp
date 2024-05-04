@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include "Config.hpp"
 
 enum OpCode
 {
@@ -965,12 +966,12 @@ private:
 		uint8_t resultingvalue = (value >> 1) | (C ? 0x80 : 0); //I rotate the entered value by 1 position right, replacing the left-most bit of the ROTATED VALUE with carry (either 1 or 0)
 		C = value & 0x1;                                      //I store the bit that disappears due to shifting of the number in the carry flag
 		setZeroAndNegativeFlags(resultingvalue);              //I also set the correct flags if the resulting value after shifting appears to be zero or negative
-		return resultingvalue;                                //I return the value 
+		return resultingvalue;                                //I return the value
 	}
 
 	uint8_t rotateleft(uint8_t value)
 	{
-		uint8_t resultingvalue = (value << 1) | (C ? 1 : 0);  //I rotate the entered value 1 position left, replacing the right-most bit of the ROTATED VALUE with value of carry 
+		uint8_t resultingvalue = (value << 1) | (C ? 1 : 0);  //I rotate the entered value 1 position left, replacing the right-most bit of the ROTATED VALUE with value of carry
 		C = value & 0x80;                                     //I store the left-most bit that disappears due to shifting into carry flag
 		setZeroAndNegativeFlags(resultingvalue);              //I check if the value is negative or zero
 		return resultingvalue;                                //I return the value
@@ -989,7 +990,7 @@ private:
 		uint8_t resultingvalue = value >> 1;                  //I rotate the entered value by 1 position right, replacing the left-most bit of the ROTATED VALUE with 0
 		C = value & 0x1;                                      //I store the bit that disappears due to shifting of the number in the carry flag
 		setZeroAndNegativeFlags(resultingvalue);              //I also set the correct flags if the resulting value after shifting appears to be zero or negative
-		return resultingvalue;                                //I return the value 
+		return resultingvalue;                                //I return the value
 	}
 
 	//VERSION OF UNIFIED OUTPUT FUNCTION WITH ENUMS USED
@@ -2074,7 +2075,7 @@ private:
 
 
 
-	//save instructions 
+	//save instructions
 
 	void saveIndirectY(const char* instruction, uint8_t value)
 	{
@@ -2168,7 +2169,7 @@ static bool TestBasicOps()
 	 0x02, 0x00, 0xA9, 0x81, 0x8D, 0x03, 0x00, 0xA9,
 	 0x73, 0x8D, 0x04, 0x00, 0x18, 0x20, 0x44, 0x10,
 	 0xFF, 0xA9, 0xFA, 0x8D, 0x01, 0x00, 0xA9, 0x03, //first was 0xea but changed to 0xff (halt)
-	 0x8D, 0x02, 0x00, 0x20, 0x51, 0x10, 0xFF, 0xA9, // seventh was ea but is now ff 
+	 0x8D, 0x02, 0x00, 0x20, 0x51, 0x10, 0xFF, 0xA9, // seventh was ea but is now ff
 	 0x07, 0x8D, 0x01, 0x00, 0xA9, 0x06, 0x8D, 0x02,
 	 0x00, 0x20, 0x74, 0x10, 0xEA, 0xA9, 0x0A, 0x8D,
 	 0x01, 0x00, 0xA9, 0x05, 0x8D, 0x02, 0x00, 0x20,
@@ -2246,8 +2247,25 @@ static bool TestBasicOps()
 	return(isOk);
 }
 
+void test_config_module()
+{
+        Config cfg("config.cfg");
+
+        if (!cfg.is_ready()) {
+                std::cout << "Could not parse config file." << std::endl;
+                return;
+        }
+
+        std::vector<std::string> keys = cfg.keys();
+
+        std::for_each(keys.begin(), keys.end(), [&](const std::string& key) -> void {
+                std::cout << key << " <--> "  << cfg[key] << std::endl;
+        });
+}
+
 int main()
 {
+        test_config_module();
 
 	TestBasicOps();
 
